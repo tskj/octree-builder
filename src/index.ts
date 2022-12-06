@@ -1,12 +1,13 @@
 import { buildOctree } from "builder";
 import { readFile } from "node:fs/promises"
-import { Octree, Point } from "types";
-import { assert, distSq, isFiniteNumber, recordMap } from "utils";
+import { Point } from "types";
+import { assert, distSq, isFiniteNumber, } from "utils";
+import { octree_format, traverse } from "octree-utils";
 
-const file = await Bun.file("./data/pointcloud.bin").arrayBuffer()
+const file = await readFile("./data/pointcloud.bin");
 
 const fileLength = file.byteLength;
-const view = new DataView(file, 0, fileLength);
+const view = new DataView(file.buffer, 0, fileLength);
 
 const points: Point[] = [];
 
@@ -56,20 +57,8 @@ assert("entire file is read", numberOfPointsRead === fileLength / 16)
 const octree = buildOctree(points, 500)
 
 const list = []
-const traverse = (tree: Octree) => {
-    const [x, y] = tree;
-    if (x === 'empty') return;
-    if (x === 'leaf') {
-        list.push(y);
-        return;
-    }
-    if (x === 'node') {
-        recordMap(y, (_, octree) => traverse(octree))
-        return;
-    }
-}
+traverse(octree, p => list.push(p));
 
-traverse(octree);
 console.log("numbers in tree:", list.length)
 console.log("numbers in list:", points.length)
 
