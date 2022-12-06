@@ -1,5 +1,5 @@
 import { Point, Octree, OctantDirections, octantDirections } from "types";
-import { assert } from "utils";
+import { assert, recordMap } from "utils";
 import { add } from "vectors";
 
 /**
@@ -12,8 +12,8 @@ const newOctants = (): Record<OctantDirections, Point[]> =>
         ;
 
 /**
- * tells you in which direction the point lies, in other words which octant
- * it needs to be placed in
+ * tells you in which direction the point lies relative to octantCenter, 
+ * in other words which octant it needs to be placed in
  */
 const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
     assert("point is within octants along X axis", octantCenter.x - octantSize <= point.x && point.x <= octantCenter.x + octantSize);
@@ -77,19 +77,18 @@ const octantDirectionToPoint = (dir: OctantDirections, octantSize: number, octan
  * enough octantSize for the dataset, and with a octantCenter set accordingly!
  */
 export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = {x: 0, y: 0, z: 0}): Octree => {
-    const octants = newOctants();
+    if (points.length === 0) return ['empty']
+    if (points.length === 1) return ['leaf', points[0]]
+
+    const octantsWithPoints = newOctants();
 
     for (const point of points) {
         const direction = octantDirectionOfPoint(point, octantSize, octantCenter);
-        octants[direction].push(point);
+        octantsWithPoints[direction].push(point);
     }
 
-    for (const direction of octantDirections) {
-        octants[direction] = buildOctree(
-            octants[direction], 
-            octantSize / 2, 
-            octantDirectionToPoint(direction, octantSize, octantCenter));
-    }
+    const octants = recordMap(octantsWithPoints, (direction, points) =>
+        buildOctree(points, octantSize / 2, octantDirectionToPoint(direction, octantSize, octantCenter)))
 
-    return octants;
+    return ['node', octants]
 };

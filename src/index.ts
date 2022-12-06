@@ -1,11 +1,12 @@
+import { buildOctree } from "builder";
 import { readFile } from "node:fs/promises"
-import { Point } from "types";
-import { assert, distSq, isFiniteNumber } from "utils";
+import { Octree, Point } from "types";
+import { assert, distSq, isFiniteNumber, recordMap } from "utils";
 
-const file = await readFile("./data/pointcloud.bin")
+const file = await Bun.file("./data/pointcloud.bin").arrayBuffer()
 
 const fileLength = file.byteLength;
-const view = new DataView(file.buffer, 0, fileLength);
+const view = new DataView(file, 0, fileLength);
 
 const points: Point[] = [];
 
@@ -51,3 +52,29 @@ for (let i = 0; i < fileLength; i += 16) {
 }
 
 assert("entire file is read", numberOfPointsRead === fileLength / 16)
+
+const octree = buildOctree(points, 500)
+
+const list = []
+const traverse = (tree: Octree) => {
+    const [x, y] = tree;
+    if (x === 'empty') return;
+    if (x === 'leaf') {
+        list.push(y);
+        return;
+    }
+    if (x === 'node') {
+        recordMap(y, (_, octree) => traverse(octree))
+        return;
+    }
+}
+
+traverse(octree);
+console.log("numbers in tree:", list.length)
+console.log("numbers in list:", points.length)
+
+const eqSet = (xs, ys) =>
+    xs.size === ys.size &&
+    [...xs].every((x) => ys.has(x));
+
+console.log("sets equal?", eqSet(new Set(list), new Set(points)))
