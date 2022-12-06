@@ -18,7 +18,7 @@ export const octantDirections = [
 
 export type OctantDirections = (typeof octantDirections)[number]
 
-type Octants = Record<OctantDirections, Octree>
+export type Octants = Record<OctantDirections, Octree>
 
 export type Octree =
     | ['node', Octants]
