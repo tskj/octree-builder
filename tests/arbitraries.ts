@@ -30,3 +30,8 @@ export const fc_listOfUniquePoints = () =>
                 octantWidth: max + padding
             }
         })
+
+export const fc_examples = {
+    context: () => fc.sample(fc.context(), {numRuns:1})[0],
+    twoPointsFailure: {"points":[{"x":-5e-324,"y":8749.999999999982,"z":-5e-324},{"x":-5e-324,"y":7656.249999999984,"z":-5e-324}],"octantWidth":8749.999999999982},
+}

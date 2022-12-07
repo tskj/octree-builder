@@ -1,6 +1,6 @@
 import { octantDirections, Octree, Point } from "types";
 import { recordMap } from "utils";
-import { point_format } from "point-utils";
+import { origin, point_format } from "point-utils";
 
 export const traverse = (tree: Octree, 
     leaf: (p: Point) => void, 
@@ -27,6 +27,10 @@ export const traverse = (tree: Octree,
             return;
         }
     }
+}
+
+export const lookupNearest = (tree: Octree, octantSize: number, octantCenter: Point = origin) => {
+    
 }
 
 export const octree_format = (octree: Octree) => {

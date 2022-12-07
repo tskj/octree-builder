@@ -1,6 +1,6 @@
 import { Point, Octree, OctantDirections, octantDirections } from "types";
 import { assert, recordMap } from "utils";
-import { add } from "point-utils";
+import { add, origin } from "point-utils";
 
 /**
  * new Octants with a list of points each, meant to be mutated
@@ -16,19 +16,10 @@ const newOctants = (): Record<OctantDirections, Point[]> =>
  * in other words which octant it needs to be placed in
  */
 const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
-    assert("point is within octants along X axis", octantCenter.x - octantSize <= point.x && point.x <= octantCenter.x + octantSize);
-    try {
-    assert("point is within octants along Y axis", octantCenter.y - octantSize <= point.y && point.y <= octantCenter.y + octantSize);
-    } catch (e) {
-        console.log("center", octantCenter.y)
-        console.log("octant size", octantSize)
-        console.log("left", octantCenter.y - octantSize)
-        console.log("point", point.y)
-        console.log("right", octantCenter.y + octantSize)
-        console.log("test-left", octantCenter.y - octantSize <= point.y)
-        console.log("test-right", point.y <= octantCenter.y + octantSize)
-    }
-    assert("point is within octants along Z axis", octantCenter.z - octantSize <= point.z && point.z <= octantCenter.z + octantSize);
+    const eps = 1e-10
+    assert("point is within octants along X axis", octantCenter.x - octantSize - eps <= point.x && point.x <= octantCenter.x + octantSize + eps);
+    assert("point is within octants along Y axis", octantCenter.y - octantSize - eps <= point.y && point.y <= octantCenter.y + octantSize + eps);
+    assert("point is within octants along Z axis", octantCenter.z - octantSize - eps <= point.z && point.z <= octantCenter.z + octantSize + eps);
     if (point.x < octantCenter.x) {
         if (point.y < octantCenter.y) {
             if (point.z < octantCenter.z) {
@@ -88,7 +79,7 @@ const octantDirectionToPoint = (dir: OctantDirections, octantSize: number, octan
  *
  * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
-export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = {x: 0, y: 0, z: 0}): Octree => {
+export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin): Octree => {
     if (points.length === 0) return ['empty']
     if (points.length === 1) return ['leaf', points[0]]
 

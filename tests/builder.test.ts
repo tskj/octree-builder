@@ -1,11 +1,13 @@
 import fc from "fast-check";
-import { fc_listOfUniquePoints, fc_point } from "./arbitraries";
+import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree } from "../src/builder";
-import { octree_format, traverse } from "octree-utils";
+import { traverse } from "octree-utils";
+import { point_serialize } from "point-utils";
+import { expectToBePermutation } from "./utils";
 
 
-test('all points exist in octree', () => {
+test('retrieved points match input points', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
@@ -17,16 +19,26 @@ test('all points exist in octree', () => {
                 const list = [];
                 traverse(octree, p => list.push(p));
 
-                ctx.log(octree_format(octree))
-                ctx.log(list.map(p => octree_format(['leaf', p])).join(", "))
-
-                expect(list.length).toBe(points.length);
-                expect(new Set(list)).toEqual(new Set(points));
-                expect(true).toBe(false)
-                // expect(list).toEqual(points);
+                expectToBePermutation(points.map(point_serialize), list.map(point_serialize))
             }
         ),
-        { seed: -4479887, path: "65:2:0:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:16:5:3:4:5:3:4:7:7:6:3:3:6:4:4:3:3:4:6:4:3:6:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:8:10:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:22:4:10:9:12:9:9:10:9:12:10:11:10:9:9:9:9:9:11:9:9:9:10:11:9:9:10:9:11:9:9:9:11:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:11:8", endOnFailure: true }
+        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+    )
+})
+
+test('all points exist in octree', () => {
+    fc.assert(
+        fc.property(
+            fc_listOfUniquePoints(),
+            fc.context(),
+            ({points, octantWidth}, ctx) => {
+
+                const octree = buildOctree(points, octantWidth);
+
+                
+            }
+        ),
+        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
     )
 })
 
