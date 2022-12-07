@@ -1,6 +1,6 @@
 import { octantDirections, Octree, Point } from "types";
 import { recordMap } from "utils";
-import { point_format } from "vectors";
+import { point_format } from "point-utils";
 
 export const traverse = (tree: Octree, 
     leaf: (p: Point) => void, 

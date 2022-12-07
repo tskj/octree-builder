@@ -7,3 +7,9 @@ export const add = (a: Point, b: Point): Point => ({
 });
 
 export const point_format = ({x, y, z}: Point) => `Point{${x}, ${y}, ${z}}`;
+
+export const point_serialize = ({x, y, z}: Point) => `${x}:${y}:${z}`
+export const point_parse = (point: string): Point => {
+    const [x, y, z] = point.split(':').map(parseFloat)
+    return {x, y, z}
+}

@@ -1,5 +1,5 @@
 import fc from "fast-check";
-import { fc_point } from "./arbitraries";
+import { fc_listOfUniquePoints, fc_point } from "./arbitraries";
 
 import { buildOctree } from "../src/builder";
 import { octree_format, traverse } from "octree-utils";
@@ -8,19 +8,11 @@ import { octree_format, traverse } from "octree-utils";
 test('all points exist in octree', () => {
     fc.assert(
         fc.property(
-            fc.array(fc_point()).map(array => {
-                return [...new Set(array.map(({x, y, z}) => `${x}:${y}:${z}`))]
-                    .map(xyz => xyz.split(':').map(parseFloat))
-                    .map(([x, y, z]) => ({x, y, z}))
-            }),
-            fc.double({min: 0, max: 100, noNaN: true}),
+            fc_listOfUniquePoints(),
             fc.context(),
-            (points, padding, ctx) => {
-                const max = Math.max(...points.map(({x,y,z}) => 
-                    Math.max(
-                        Math.abs(x), Math.abs(y), Math.abs(z))))
+            ({points, octantWidth}, ctx) => {
 
-                const octree = buildOctree(points, max + padding);
+                const octree = buildOctree(points, octantWidth);
 
                 const list = [];
                 traverse(octree, p => list.push(p));
@@ -30,9 +22,11 @@ test('all points exist in octree', () => {
 
                 expect(list.length).toBe(points.length);
                 expect(new Set(list)).toEqual(new Set(points));
+                expect(true).toBe(false)
                 // expect(list).toEqual(points);
             }
         ),
+        { seed: -4479887, path: "65:2:0:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:2:16:5:3:4:5:3:4:7:7:6:3:3:6:4:4:3:3:4:6:4:3:6:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:5:8:10:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:9:22:4:10:9:12:9:9:10:9:12:10:11:10:9:9:9:9:9:11:9:9:9:10:11:9:9:10:9:11:9:9:9:11:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:10:11:8", endOnFailure: true }
     )
 })
 

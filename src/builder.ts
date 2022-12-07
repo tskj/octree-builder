@@ -1,6 +1,6 @@
 import { Point, Octree, OctantDirections, octantDirections } from "types";
 import { assert, recordMap } from "utils";
-import { add } from "vectors";
+import { add } from "point-utils";
 
 /**
  * new Octants with a list of points each, meant to be mutated
@@ -17,7 +17,17 @@ const newOctants = (): Record<OctantDirections, Point[]> =>
  */
 const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
     assert("point is within octants along X axis", octantCenter.x - octantSize <= point.x && point.x <= octantCenter.x + octantSize);
+    try {
     assert("point is within octants along Y axis", octantCenter.y - octantSize <= point.y && point.y <= octantCenter.y + octantSize);
+    } catch (e) {
+        console.log("center", octantCenter.y)
+        console.log("octant size", octantSize)
+        console.log("left", octantCenter.y - octantSize)
+        console.log("point", point.y)
+        console.log("right", octantCenter.y + octantSize)
+        console.log("test-left", octantCenter.y - octantSize <= point.y)
+        console.log("test-right", point.y <= octantCenter.y + octantSize)
+    }
     assert("point is within octants along Z axis", octantCenter.z - octantSize <= point.z && point.z <= octantCenter.z + octantSize);
     if (point.x < octantCenter.x) {
         if (point.y < octantCenter.y) {
