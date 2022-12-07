@@ -75,6 +75,8 @@ const octantDirectionToPoint = (dir: OctantDirections, octantSize: number, octan
  * 
  * if any point is outside the cube, the function throws - make sure to call it with large
  * enough octantSize for the dataset, and with a octantCenter set accordingly!
+ *
+ * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
 export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = {x: 0, y: 0, z: 0}): Octree => {
     if (points.length === 0) return ['empty']

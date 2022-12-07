@@ -8,7 +8,11 @@ import { octree_format, traverse } from "octree-utils";
 test('all points exist in octree', () => {
     fc.assert(
         fc.property(
-            fc.array(fc_point(), {maxLength: 2}),
+            fc.array(fc_point()).map(array => {
+                return [...new Set(array.map(({x, y, z}) => `${x}:${y}:${z}`))]
+                    .map(xyz => xyz.split(':').map(parseFloat))
+                    .map(([x, y, z]) => ({x, y, z}))
+            }),
             fc.double({min: 0, max: 100, noNaN: true}),
             fc.context(),
             (points, padding, ctx) => {
@@ -29,7 +33,6 @@ test('all points exist in octree', () => {
                 // expect(list).toEqual(points);
             }
         ),
-        { seed: -731411284, path: "2:2:2:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:1:2:3:3:3:1:1:2", endOnFailure: true }
     )
 })
 
@@ -39,6 +42,8 @@ test('all points exist in octree', () => {
 // - all the leaves in an octant should be ordered among themselves
 // - somehow all points should be ordered within the tree
 // - lowest value in an right octant should be bigger than highest value in a left octant
+// - points exist in octree requires us to actually look up a point I think
+//   retrieving all the points is a different test!
 
 // need a function to calculate depth
 // maybe a function to extract all values
