@@ -2,7 +2,7 @@ import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree } from "../src/builder";
-import { octree_format, traverse, traverseOctree } from "octree-utils";
+import { octree_format, traverse } from "octree-utils";
 import { point_serialize } from "point-utils";
 import { expectToBePermutation } from "./utils";
 
@@ -17,9 +17,7 @@ test('retrieved points match input points', () => {
                 const octree = buildOctree(points, octantWidth);
 
                 const list = [];
-                traverseOctree(octree, p => list.push(p), () => {}, () => {});
-
-                // console.log(octree_format(octree));
+                traverse(octree, p => list.push(p));
 
                 expectToBePermutation(points.map(point_serialize), list.map(point_serialize))
             }
