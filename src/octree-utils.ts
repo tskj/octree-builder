@@ -3,10 +3,11 @@ import { assert, recordMap } from "utils";
 import { add, point_format } from "point-utils";
 
 export const traverse = (tree: Octree, 
-    leaf: (p: Point) => void, 
+    leaf: (p: Point, path: OctantDirections[]) => void,
     nodeStart: () => void = () => {}, 
     empty: () => void = () => {},
     nodeDone: () => void = () => {},
+    path: OctantDirections[] = []
     ) => {
 
     switch (tree[0]) {
@@ -16,13 +17,14 @@ export const traverse = (tree: Octree,
         }
         case 'leaf': {
             const point = tree[1];
-            leaf(point);
+            leaf(point, path);
             return;
         }
         case 'node': {
             const octants = tree[1];
             nodeStart();
-            recordMap(octants, (_, octree) => traverse(octree, leaf, nodeStart, empty, nodeDone));
+            recordMap(octants, (direction, octree) =>
+                traverse(octree, leaf, nodeStart, empty, nodeDone, [...path, direction]));
             nodeDone();
             return;
         }
@@ -114,3 +116,10 @@ export const octantDirectionToPoint = (dir: OctantDirections, octantSize: number
         case 'posX_posY_posZ': return add(octantCenter, {x:  step, y:  step, z:  step});
     }
 };
+
+/**
+ * new Octants with a list of points each, meant to be mutated
+ */
+export const newOctants = (): Record<OctantDirections, Point[]> =>
+    Object.fromEntries(
+        octantDirections.map(dir => [dir, []])) as any;

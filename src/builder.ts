@@ -1,7 +1,7 @@
 import { Point, Octree, OctantDirections, octantDirections } from "types";
 import { recordMap } from "utils";
 import { origin } from "point-utils";
-import { octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
+import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
 
 /**
  * shuffles all points into their respective octants recursively, where octantSize is the
@@ -13,14 +13,6 @@ import { octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
  * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
 export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin): Octree => {
-    /**
-     * new Octants with a list of points each, meant to be mutated
-     */
-    const newOctants = (): Record<OctantDirections, Point[]> => 
-        octantDirections
-            .map(dir => ({[dir]: []}))
-            .reduce((acc, x) => ({...acc, ...x}), {}) as any
-            ;
 
     if (points.length === 0) return ['empty']
     if (points.length === 1) return ['leaf', points[0]]
