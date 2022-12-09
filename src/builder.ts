@@ -1,74 +1,7 @@
 import { Point, Octree, OctantDirections, octantDirections } from "types";
-import { assert, recordMap } from "utils";
-import { add, origin } from "point-utils";
-
-/**
- * new Octants with a list of points each, meant to be mutated
- */
-const newOctants = (): Record<OctantDirections, Point[]> => 
-    octantDirections
-        .map(dir => ({[dir]: []}))
-        .reduce((acc, x) => ({...acc, ...x}), {}) as any
-        ;
-
-/**
- * tells you in which direction the point lies relative to octantCenter, 
- * in other words which octant it needs to be placed in
- */
-const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
-    const eps = 1e-10
-    assert("point is within octants along X axis", octantCenter.x - octantSize - eps <= point.x && point.x <= octantCenter.x + octantSize + eps);
-    assert("point is within octants along Y axis", octantCenter.y - octantSize - eps <= point.y && point.y <= octantCenter.y + octantSize + eps);
-    assert("point is within octants along Z axis", octantCenter.z - octantSize - eps <= point.z && point.z <= octantCenter.z + octantSize + eps);
-    if (point.x < octantCenter.x) {
-        if (point.y < octantCenter.y) {
-            if (point.z < octantCenter.z) {
-                return 'negX_negY_negZ';
-            } else {
-                return 'negX_negY_posZ';
-            }
-        } else {
-            if (point.z < octantCenter.z) {
-                return 'negX_posY_negZ';
-            } else {
-                return 'negX_posY_posZ';
-            }
-        }
-    } else {
-        if (point.y < octantCenter.y) {
-            if (point.z < octantCenter.z) {
-                return 'posX_negY_negZ';
-            } else {
-                return 'posX_negY_posZ';
-            }
-        } else {
-            if (point.z < octantCenter.z) {
-                return 'posX_posY_negZ';
-            } else {
-                return 'posX_posY_posZ';
-            }
-
-        }
-    }
-};
-
-/**
- * tells you the new center of the octant according to which direction we're considering
- * (half a step along that direction)
- */
-const octantDirectionToPoint = (dir: OctantDirections, octantSize: number, octantCenter: Point): Point => {
-    const step = octantSize / 2;
-    switch (dir) {
-        case 'negX_negY_negZ': return add(octantCenter, {x: -step, y: -step, z: -step});
-        case 'negX_negY_posZ': return add(octantCenter, {x: -step, y: -step, z:  step});
-        case 'negX_posY_negZ': return add(octantCenter, {x: -step, y:  step, z: -step});
-        case 'negX_posY_posZ': return add(octantCenter, {x: -step, y:  step, z:  step});
-        case 'posX_negY_negZ': return add(octantCenter, {x:  step, y: -step, z: -step});
-        case 'posX_negY_posZ': return add(octantCenter, {x:  step, y: -step, z:  step});
-        case 'posX_posY_negZ': return add(octantCenter, {x:  step, y:  step, z: -step});
-        case 'posX_posY_posZ': return add(octantCenter, {x:  step, y:  step, z:  step});
-    }
-};
+import { recordMap } from "utils";
+import { origin } from "point-utils";
+import { octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
 
 /**
  * shuffles all points into their respective octants recursively, where octantSize is the
@@ -80,6 +13,15 @@ const octantDirectionToPoint = (dir: OctantDirections, octantSize: number, octan
  * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
 export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin): Octree => {
+    /**
+     * new Octants with a list of points each, meant to be mutated
+     */
+    const newOctants = (): Record<OctantDirections, Point[]> => 
+        octantDirections
+            .map(dir => ({[dir]: []}))
+            .reduce((acc, x) => ({...acc, ...x}), {}) as any
+            ;
+
     if (points.length === 0) return ['empty']
     if (points.length === 1) return ['leaf', points[0]]
 
@@ -95,3 +37,28 @@ export const buildOctree = (points: Point[], octantSize: number, octantCenter: P
 
     return ['node', octants]
 };
+
+/**
+ * looks up the point in the octree in the same octant as the `point`
+ * 
+ * this could technically be not the nearest point in space, because
+ * it could actually lie in a different octant
+ * 
+ * returns undefined if that octant is empty
+ */
+export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin) => {
+    switch (tree[0]) {
+        case 'empty': {
+            return undefined;
+        }
+        case 'leaf': {
+            return tree[1];
+        }
+        case 'node': {
+            const octant = octantDirectionOfPoint(point, octantSize, octantCenter);
+            const newSize = octantSize / 2;
+            const newCenter = octantDirectionToPoint(octant, octantSize, octantCenter)
+            return lookupNearest(point, tree[1][octant], newSize, newCenter);
+        }
+    }
+}

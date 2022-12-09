@@ -1,8 +1,8 @@
 import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
-import { buildOctree } from "../src/builder";
-import { octree_format, traverse } from "octree-utils";
+import { buildOctree, lookupNearest } from "../src/builder";
+import { traverse } from "octree-utils";
 import { point_serialize } from "point-utils";
 import { expectToBePermutation } from "./utils";
 
@@ -35,7 +35,10 @@ test('all points exist in octree', () => {
 
                 const octree = buildOctree(points, octantWidth);
 
-                
+                for (const point of points) {
+                    const nearestPoint = lookupNearest(point, octree, octantWidth);
+                    expect(nearestPoint).toEqual(point);
+                }
             }
         ),
         { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }

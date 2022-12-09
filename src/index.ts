@@ -1,4 +1,4 @@
-import { buildOctree } from "builder";
+import { buildOctree, lookupNearest } from "builder";
 import { readFile } from "node:fs/promises"
 import { Point } from "types";
 import { assert, distSq, isFiniteNumber, } from "utils";
@@ -67,3 +67,6 @@ const eqSet = (xs, ys) =>
     [...xs].every((x) => ys.has(x));
 
 console.log("sets equal?", eqSet(new Set(list), new Set(points)))
+
+console.log("point", points[123])
+console.log("octree point", lookupNearest(points[123], octree, 500))
