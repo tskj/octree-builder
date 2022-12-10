@@ -1,12 +1,20 @@
 import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
+import { readFileSync } from 'node:fs';
 
 import { buildOctree, lookupNearest } from "../src/builder";
 import { newOctants, traverse, treeSize } from "octree-utils";
 import { point_serialize } from "point-utils";
-import { expectToBePermutation } from "./utils";
+import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
+import { parse } from "binary-format-parser";
 
+const pointsFile = readFileSync("./data/pointcloud.bin");
+const points = parse(pointsFile.buffer);
+const realData = {
+    points,
+    octantWidth: 500,
+};
 
 test('retrieved points match input points', () => {
     fc.assert(
@@ -23,7 +31,10 @@ test('retrieved points match input points', () => {
                 expectToBePermutation(points.map(point_serialize), list.map(point_serialize))
             }
         ),
-        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+        { examples: [
+            [fc_examples.twoPointsFailure, fc_examples.context()],
+            // [realData, fc_examples.context()],
+        ] }
     )
 })
 
@@ -42,7 +53,10 @@ test('all points exist in octree', () => {
                 }
             }
         ),
-        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+        { examples: [
+            [fc_examples.twoPointsFailure, fc_examples.context()],
+            // [realData, fc_examples.context()],
+        ] }
     )
 })
 
@@ -78,7 +92,10 @@ test('all 8 octants should not be empty', () => {
                 traverse(octree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
             }
         ),
-        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+        { examples: [
+            [fc_examples.twoPointsFailure, fc_examples.context()],
+            // [realData, fc_examples.context()],
+        ] }
     )
 })
 
@@ -112,49 +129,45 @@ test('points are ordered in space correctly', () => {
                 }
 
                 const visitNodeDone = (path: OctantDirections[]) => {
-                    expect(
-                        checkOrdering(octants, p => p.x,
-                            { smaller: [
-                                'negX_negY_negZ',
-                                'negX_negY_posZ',
-                                'negX_posY_negZ',
-                                'negX_posY_posZ',
-                            ], bigger: [
-                                'posX_negY_negZ',
-                                'posX_negY_posZ',
-                                'posX_posY_negZ',
-                                'posX_posY_posZ',
-                            ]})
-                    ).toBe(true);
-                    expect(
-                        checkOrdering(octants, p => p.y,
-                            { smaller: [
-                                'negX_negY_negZ',
-                                'negX_negY_posZ',
-                                'posX_negY_negZ',
-                                'posX_negY_posZ',
-                            ], bigger: [
-                                'negX_posY_negZ',
-                                'negX_posY_posZ',
-                                'posX_posY_negZ',
-                                'posX_posY_posZ',
-                            ]})
-                    ).toBe(true);
-                    expect(
-                        checkOrdering(octants, p => p.z,
-                            { smaller: [
-                                'negX_negY_negZ',
-                                'negX_posY_negZ',
-                                'posX_negY_negZ',
-                                'posX_posY_negZ',
-                            ], bigger: [
-                                'negX_negY_posZ',
-                                'negX_posY_posZ',
-                                'posX_negY_posZ',
-                                'posX_posY_posZ',
-                            ]})
-                    ).toBe(true);
+                    expectOrderingOfPoints(octants, p => p.x,
+                        { smaller: [
+                            'negX_negY_negZ',
+                            'negX_negY_posZ',
+                            'negX_posY_negZ',
+                            'negX_posY_posZ',
+                        ], bigger: [
+                            'posX_negY_negZ',
+                            'posX_negY_posZ',
+                            'posX_posY_negZ',
+                            'posX_posY_posZ',
+                        ]})
+                    expectOrderingOfPoints(octants, p => p.y,
+                        { smaller: [
+                            'negX_negY_negZ',
+                            'negX_negY_posZ',
+                            'posX_negY_negZ',
+                            'posX_negY_posZ',
+                        ], bigger: [
+                            'negX_posY_negZ',
+                            'negX_posY_posZ',
+                            'posX_posY_negZ',
+                            'posX_posY_posZ',
+                        ]})
+                    expectOrderingOfPoints(octants, p => p.z,
+                        { smaller: [
+                            'negX_negY_negZ',
+                            'negX_posY_negZ',
+                            'posX_negY_negZ',
+                            'posX_posY_negZ',
+                        ], bigger: [
+                            'negX_negY_posZ',
+                            'negX_posY_posZ',
+                            'posX_negY_posZ',
+                            'posX_posY_posZ',
+                        ]})
 
+                    // push these points up the call stack so that we can check
+                    // all points recursively within every octant
                     const newPoints = Object.values(octants).flatMap(p => p);
 
                     octants = stack.pop();
@@ -171,20 +184,12 @@ test('points are ordered in space correctly', () => {
                 expect(octants).toBe(null);
             }
         ),
-        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+        { examples: [
+            [fc_examples.twoPointsFailure, fc_examples.context()],
+            // [realData, fc_examples.context()],
+        ] }
     )
 })
-
-const checkOrdering =
-    (octants: Record<OctantDirections, Point[]>,
-        projection: (p: Point) => number,
-        fourOctants: {bigger: OctantDirections[], smaller: OctantDirections[]},
-    ) => {
-    const bigger = fourOctants.bigger.flatMap(direction => octants[direction]).map(projection);
-    const smaller = fourOctants.smaller.flatMap(direction => octants[direction]).map(projection);
-
-    return Math.max(...smaller) < Math.min(...bigger);
-}
 
 test('depth of tree', () => {
     fc.assert(
@@ -204,6 +209,9 @@ test('depth of tree', () => {
 
             }
         ),
-        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+        { examples: [
+            [fc_examples.twoPointsFailure, fc_examples.context()],
+            // [realData, fc_examples.context()],
+        ] }
     )
 })

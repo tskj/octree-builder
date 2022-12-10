@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { point_parse, point_serialize } from 'point-utils';
 
 import { Point } from '../src/types'
+import { maxBoundingBox } from './utils';
 
 export const fc_point = (): fc.Arbitrary<Point> =>
     fc.tuple(
@@ -22,9 +23,7 @@ export const fc_listOfUniquePoints = () =>
             ),
             fc.double({min: 0, max: 100, noNaN: true})
         ).map(([points, padding]) => {
-            const max = Math.max(...points.map(({x,y,z}) =>
-                Math.max(
-                    Math.abs(x), Math.abs(y), Math.abs(z))))
+            const max = maxBoundingBox(points);
             return {
                 points,
                 octantWidth: max + padding
