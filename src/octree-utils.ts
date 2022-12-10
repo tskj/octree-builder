@@ -1,18 +1,17 @@
-import { OctantDirections, octantDirections, Octants, Octree, Point } from "types";
+import { OctantDirections, octantDirections, Octree, Point } from "types";
 import { assert, recordMap } from "utils";
 import { add, point_format } from "point-utils";
 
 export const traverse = (tree: Octree, 
     leaf: (p: Point, path: OctantDirections[]) => void,
-    nodeStart: () => void = () => {}, 
-    empty: () => void = () => {},
-    nodeDone: () => void = () => {},
+    nodeStart: (path: OctantDirections[]) => void = () => {},
+    empty: (path: OctantDirections[]) => void = () => {},
+    nodeDone: (path: OctantDirections[]) => void = () => {},
     path: OctantDirections[] = []
-    ) => {
-
+) => {
     switch (tree[0]) {
         case 'empty': {
-            empty();
+            empty(path);
             return;
         }
         case 'leaf': {
@@ -22,10 +21,10 @@ export const traverse = (tree: Octree,
         }
         case 'node': {
             const octants = tree[1];
-            nodeStart();
+            nodeStart(path);
             recordMap(octants, (direction, octree) =>
                 traverse(octree, leaf, nodeStart, empty, nodeDone, [...path, direction]));
-            nodeDone();
+            nodeDone(path);
             return;
         }
     }

@@ -1,4 +1,4 @@
-import { Point, Octree, OctantDirections, octantDirections } from "types";
+import { Point, Octree, } from "types";
 import { recordMap } from "utils";
 import { origin } from "point-utils";
 import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
@@ -48,8 +48,8 @@ export const lookupNearest = (point: Point, tree: Octree, octantSize: number, oc
         }
         case 'node': {
             const octant = octantDirectionOfPoint(point, octantSize, octantCenter);
-            const newSize = octantSize / 2;
             const newCenter = octantDirectionToPoint(octant, octantSize, octantCenter)
+            const newSize = octantSize / 2;
             return lookupNearest(point, tree[1][octant], newSize, newCenter);
         }
     }

@@ -5,7 +5,7 @@ import { buildOctree, lookupNearest } from "../src/builder";
 import { newOctants, traverse } from "octree-utils";
 import { point_serialize } from "point-utils";
 import { expectToBePermutation } from "./utils";
-import { OctantDirections, Point } from "types";
+import { OctantDirections, Octants, Point } from "types";
 
 
 test('retrieved points match input points', () => {
@@ -82,7 +82,7 @@ test('all 8 octants should not be empty', () => {
     )
 })
 
-test('leaves are ordered in space among themselves', () => {
+test('points are ordered in space correctly', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
@@ -111,12 +111,58 @@ test('leaves are ordered in space among themselves', () => {
                 const visitEmpty = () => {
                 }
 
-                const visitNodeDone = () => {
+                const visitNodeDone = (path: OctantDirections[]) => {
                     expect(
-                        Object.values(octants).every(list => list.length === 1 || list.length === 0)
+                        checkOrdering(octants, p => p.x,
+                            { smaller: [
+                                'negX_negY_negZ',
+                                'negX_negY_posZ',
+                                'negX_posY_negZ',
+                                'negX_posY_posZ',
+                            ], bigger: [
+                                'posX_negY_negZ',
+                                'posX_negY_posZ',
+                                'posX_posY_negZ',
+                                'posX_posY_posZ',
+                            ]})
+                    ).toBe(true);
+                    expect(
+                        checkOrdering(octants, p => p.y,
+                            { smaller: [
+                                'negX_negY_negZ',
+                                'negX_negY_posZ',
+                                'posX_negY_negZ',
+                                'posX_negY_posZ',
+                            ], bigger: [
+                                'negX_posY_negZ',
+                                'negX_posY_posZ',
+                                'posX_posY_negZ',
+                                'posX_posY_posZ',
+                            ]})
+                    ).toBe(true);
+                    expect(
+                        checkOrdering(octants, p => p.z,
+                            { smaller: [
+                                'negX_negY_negZ',
+                                'negX_posY_negZ',
+                                'posX_negY_negZ',
+                                'posX_posY_negZ',
+                            ], bigger: [
+                                'negX_negY_posZ',
+                                'negX_posY_posZ',
+                                'posX_negY_posZ',
+                                'posX_posY_posZ',
+                            ]})
                     ).toBe(true);
 
+                    const newPoints = Object.values(octants).flatMap(p => p);
+
                     octants = stack.pop();
+
+                    if (path.length > 0) {
+                        const lastStepInPath = path[path.length-1];
+                        octants[lastStepInPath].push(...newPoints);
+                    }
                 }
 
                 traverse(octree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
@@ -129,10 +175,18 @@ test('leaves are ordered in space among themselves', () => {
     )
 })
 
+const checkOrdering =
+    (octants: Record<OctantDirections, Point[]>,
+        projection: (p: Point) => number,
+        fourOctants: {bigger: OctantDirections[], smaller: OctantDirections[]},
+    ) => {
+    const bigger = fourOctants.bigger.flatMap(direction => octants[direction]).map(projection);
+    const smaller = fourOctants.smaller.flatMap(direction => octants[direction]).map(projection);
+
+    return Math.max(...smaller) < Math.min(...bigger);
+}
+
 // ideas for properties:
 // - maximum depth is equal to number of points
-// - all the leaves in an octant should be ordered among themselves
-// - somehow all points should be ordered within the tree
-// - lowest value in an right octant should be bigger than highest value in a left octant
 
 // need a function to calculate depth
