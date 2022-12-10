@@ -1,20 +1,11 @@
 import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
-import { readFileSync } from 'node:fs';
 
 import { buildOctree, lookupNearest } from "../src/builder";
 import { newOctants, traverse, treeSize } from "octree-utils";
 import { point_serialize } from "point-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
-import { parse } from "binary-format-parser";
-
-const pointsFile = readFileSync("./data/pointcloud.bin");
-const points = parse(pointsFile.buffer);
-const realData = {
-    points,
-    octantWidth: 500,
-};
 
 test('retrieved points match input points', () => {
     fc.assert(
@@ -33,7 +24,7 @@ test('retrieved points match input points', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            // [realData, fc_examples.context()],
+            ...fc_examples.realData,
         ] }
     )
 })
@@ -55,7 +46,7 @@ test('all points exist in octree', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            // [realData, fc_examples.context()],
+            ...fc_examples.realData,
         ] }
     )
 })
@@ -94,7 +85,7 @@ test('all 8 octants should not be empty', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            // [realData, fc_examples.context()],
+            ...fc_examples.realData,
         ] }
     )
 })
@@ -186,7 +177,7 @@ test('points are ordered in space correctly', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            // [realData, fc_examples.context()],
+            ...fc_examples.realData,
         ] }
     )
 })
@@ -211,7 +202,7 @@ test('depth of tree', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            // [realData, fc_examples.context()],
+            ...fc_examples.realData,
         ] }
     )
 })
