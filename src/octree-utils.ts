@@ -122,3 +122,51 @@ export const octantDirectionToPoint = (dir: OctantDirections, octantSize: number
 export const newOctants = (): Record<OctantDirections, Point[]> =>
     Object.fromEntries(
         octantDirections.map(dir => [dir, []])) as any;
+
+export const treeSize = (tree: Octree) => {
+    let internalNodes = 0;
+    let leafNodes = 0;
+    let emptyNodes = 0;
+
+    let currentDepth = 0;
+    let depth = 0;
+
+    const visitNode = () => {
+        internalNodes++;
+        currentDepth++;
+    }
+
+    const visitEmpty = () => {
+        emptyNodes++;
+        currentDepth++;
+        depth = Math.max(depth, currentDepth);
+        currentDepth--;
+    }
+
+    const visitLeaf = () => {
+        leafNodes++;
+        currentDepth++;
+        depth = Math.max(depth, currentDepth);
+        currentDepth--;
+    }
+
+    const visitNodeDone = () => {
+        depth = Math.max(depth, currentDepth);
+        currentDepth--;
+    }
+
+    traverse(tree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
+
+    if (currentDepth !== 0) {
+        console.log(tree)
+        console.log(depth)
+    }
+    assert("depth is zero after traversal", currentDepth === 0);
+
+    return {
+        internalNodes,
+        leafNodes,
+        emptyNodes,
+        depth,
+    };
+}

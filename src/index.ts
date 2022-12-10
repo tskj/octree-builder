@@ -2,7 +2,7 @@ import { buildOctree, lookupNearest } from "builder";
 import { readFile } from "node:fs/promises"
 import { Point } from "types";
 import { assert, distSq, isFiniteNumber, } from "utils";
-import { octree_format, traverse } from "octree-utils";
+import { octree_format, traverse, treeSize } from "octree-utils";
 
 const file = await readFile("./data/pointcloud.bin");
 
@@ -46,27 +46,29 @@ for (let i = 0; i < fileLength; i += 16) {
 
 
     const dist2 = distSq(point);
-    assert("calculated point is not at origin", dist2 > 0.10 ** 2)
-    assert("calculated point is not too far away", dist2 < 1000 ** 2)
+    assert("calculated point is not at origin", dist2 > 0.10 ** 2);
+    assert("calculated point is not too far away", dist2 < 1000 ** 2);
 
-    points.push(point)
+    points.push(point);
 }
 
-assert("entire file is read", numberOfPointsRead === fileLength / 16)
+assert("entire file is read", numberOfPointsRead === fileLength / 16);
 
-const octree = buildOctree(points, 500)
+const octree = buildOctree(points, 500);
 
-const list = []
+const list = [];
 traverse(octree, p => list.push(p));
 
-console.log("numbers in tree:", list.length)
-console.log("numbers in list:", points.length)
+console.log("numbers in tree:", list.length);
+console.log("numbers in list:", points.length);
 
 const eqSet = (xs, ys) =>
     xs.size === ys.size &&
     [...xs].every((x) => ys.has(x));
 
-console.log("sets equal?", eqSet(new Set(list), new Set(points)))
+console.log("sets equal?", eqSet(new Set(list), new Set(points)));
 
-console.log("point", points[123])
-console.log("octree point", lookupNearest(points[123], octree, 500))
+console.log("point", points[123]);
+console.log("octree point", lookupNearest(points[123], octree, 500));
+
+console.log("size", treeSize(octree));

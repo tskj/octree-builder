@@ -2,10 +2,10 @@ import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree, lookupNearest } from "../src/builder";
-import { newOctants, traverse } from "octree-utils";
+import { newOctants, traverse, treeSize } from "octree-utils";
 import { point_serialize } from "point-utils";
 import { expectToBePermutation } from "./utils";
-import { OctantDirections, Octants, Point } from "types";
+import { OctantDirections, Point } from "types";
 
 
 test('retrieved points match input points', () => {
@@ -186,7 +186,24 @@ const checkOrdering =
     return Math.max(...smaller) < Math.min(...bigger);
 }
 
-// ideas for properties:
-// - maximum depth is equal to number of points
+test('depth of tree', () => {
+    fc.assert(
+        fc.property(
+            fc_listOfUniquePoints(),
+            fc.context(),
+            ({points, octantWidth}, ctx) => {
 
-// need a function to calculate depth
+                const octree = buildOctree(points, octantWidth);
+                const {internalNodes, leafNodes, emptyNodes, depth} = treeSize(octree);
+                const leaves = leafNodes + emptyNodes;
+
+                const maxNumberOfNodes = (Math.pow(8, depth) - 1) / 7;
+                expect(internalNodes + leaves).toBeLessThanOrEqual(maxNumberOfNodes);
+
+                expect(leaves).toBe(internalNodes * 7 + 1);
+
+            }
+        ),
+        { examples: [[fc_examples.twoPointsFailure, fc_examples.context()]] }
+    )
+})
