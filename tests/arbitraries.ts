@@ -38,7 +38,7 @@ const context = () => fc.sample(fc.context(), {numRuns:1})[0]
 let points: Point[] | null;
 if (process.argv[2] === "-use-real-data") {
     const pointsFile = readFileSync("./data/pointcloud.bin");
-    points = parse(pointsFile.buffer);
+    points = parse(pointsFile.buffer).slice(0, 1e5);
 }
 
 export const fc_examples = {

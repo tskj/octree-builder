@@ -27,4 +27,4 @@ You can also run the property based tests with real data in addition to syntheti
 $ npm run test -- -use-real-data
 ```
 
-however this takes way longer, so be careful! This also expects a scan file `data/pointcloud.bin` with real data in a specific format.
+however this takes longer, so be careful! This also expects a scan file `data/pointcloud.bin` with real data in a specific format.
