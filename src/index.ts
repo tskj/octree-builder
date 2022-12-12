@@ -1,15 +1,13 @@
 import { buildOctree, lookupNearest } from "builder";
 import { readFile } from "node:fs/promises"
-import { traverse, treeSize } from "octree-utils";
+import { getAll, traverse, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
 
 const file = await readFile("./data/pointcloud.bin");
 const points = parse(file.buffer);
 const octree = buildOctree(points, 500);
 
-
-const list = [];
-traverse(octree, p => list.push(p));
+const list = getAll(octree);
 
 console.log("numbers in tree:", list.length);
 console.log("numbers in list:", points.length);

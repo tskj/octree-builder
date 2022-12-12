@@ -150,3 +150,11 @@ export const treeSize = (tree: Octree) => {
         depth,
     };
 }
+
+export const getAll = (octree: Octree): Point[] => {
+    let points = [];
+    traverse(octree, ps => {
+        points = points.concat(ps);
+    });
+    return points;
+}

@@ -2,7 +2,7 @@ import fc from "fast-check";
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree, lookupNearest } from "../src/builder";
-import { newOctants, traverse, treeSize } from "octree-utils";
+import { getAll, newOctants, traverse, treeSize } from "octree-utils";
 import { origin, point_serialize } from "vector-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
@@ -17,8 +17,7 @@ test('retrieved points match input points', () => {
 
                 const octree = buildOctree(points, octantWidth, origin, leafSize);
 
-                const list = [];
-                traverse(octree, ps => list.push(...ps));
+                const list = getAll(octree);
 
                 expectToBePermutation(points.map(point_serialize), list.map(point_serialize))
             }
@@ -116,7 +115,7 @@ test('points are ordered in space correctly', () => {
                 const visitLeaf = (ps: Point[], path: OctantDirections[]) => {
                     // has to exist because of precondition
                     const lastStepInPath = path[path.length-1];
-                    octants[lastStepInPath].push(...ps);
+                    for (const p of ps) octants[lastStepInPath].push(p);
                 }
 
                 const visitNodeDone = (path: OctantDirections[]) => {
@@ -165,7 +164,7 @@ test('points are ordered in space correctly', () => {
 
                     if (path.length > 0) {
                         const lastStepInPath = path[path.length-1];
-                        octants[lastStepInPath].push(...newPoints);
+                        for (const np of newPoints) octants[lastStepInPath].push(np);
                     }
                 }
 
