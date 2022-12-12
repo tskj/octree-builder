@@ -12,10 +12,9 @@ import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octr
  *
  * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
-export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin): Octree => {
+export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin, leafSize = 10000): Octree => {
 
-    if (points.length === 0) return ['empty']
-    if (points.length === 1) return ['leaf', points[0]]
+    if (points.length <= leafSize) return ['leaf', points];
 
     const octantsWithPoints = newOctants();
 
@@ -25,24 +24,19 @@ export const buildOctree = (points: Point[], octantSize: number, octantCenter: P
     }
 
     const octants = recordMap(octantsWithPoints, (direction, points) =>
-        buildOctree(points, octantSize / 2, octantDirectionToPoint(direction, octantSize, octantCenter)))
+        buildOctree(points, octantSize / 2, octantDirectionToPoint(direction, octantSize, octantCenter), leafSize))
 
     return ['node', octants]
 };
 
 /**
- * looks up the point in the octree in the same octant as the `point`
+ * looks up the points in the octree in the same octant as the `point`
  * 
  * this could technically be not the nearest point in space, because
  * it could actually lie in a different octant
- * 
- * returns undefined if that octant is empty
  */
-export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin): Point | undefined => {
+export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin): Point[] => {
     switch (tree[0]) {
-        case 'empty': {
-            return undefined;
-        }
         case 'leaf': {
             return tree[1];
         }

@@ -21,6 +21,6 @@ const eqSet = (xs, ys) =>
 console.log("sets equal?", eqSet(new Set(list), new Set(points)));
 
 console.log("point", points[123]);
-console.log("octree point", lookupNearest(points[123], octree, 500));
+// console.log("octree point", lookupNearest(points[123], octree, 500));
 
 console.log("size", treeSize(octree));

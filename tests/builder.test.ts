@@ -3,7 +3,7 @@ import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree, lookupNearest } from "../src/builder";
 import { newOctants, traverse, treeSize } from "octree-utils";
-import { point_serialize } from "vector-utils";
+import { origin, point_serialize } from "vector-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
 
@@ -17,7 +17,7 @@ test('retrieved points match input points', () => {
                 const octree = buildOctree(points, octantWidth);
 
                 const list = [];
-                traverse(octree, p => list.push(p));
+                traverse(octree, ps => list.push(...ps));
 
                 expectToBePermutation(points.map(point_serialize), list.map(point_serialize))
             }
@@ -39,8 +39,8 @@ test('all points exist in octree', () => {
                 const octree = buildOctree(points, octantWidth);
 
                 for (const point of points) {
-                    const nearestPoint = lookupNearest(point, octree, octantWidth);
-                    expect(nearestPoint).toEqual(point);
+                    const nearestPoints = lookupNearest(point, octree, octantWidth);
+                    expect(nearestPoints).toContainEqual(point);
                 }
             }
         ),
@@ -66,12 +66,12 @@ test('all 8 octants should not be empty', () => {
                     emptyInaRow = 0;
                 }
 
-                const visitLeaf = () => {
-                    emptyInaRow = 0;
-                }
-
-                const visitEmpty = () => {
-                    emptyInaRow += 1;
+                const visitLeaf = (ps: Point[]) => {
+                    if (ps.length === 0) {
+                        emptyInaRow++;
+                    } else {
+                        emptyInaRow = 0;
+                    }
                 }
 
                 const visitNodeDone = () => {
@@ -80,7 +80,7 @@ test('all 8 octants should not be empty', () => {
                     emptyInaRow = 0;
                 }
 
-                traverse(octree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
+                traverse(octree, visitLeaf, visitNode, visitNodeDone);
             }
         ),
         { examples: [
@@ -94,13 +94,13 @@ test('points are ordered in space correctly', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
+            fc.integer({min: 1, max: 10}),
             fc.context(),
-            ({points, octantWidth}, ctx) => {
+            ({points, octantWidth}, leafSize, ctx) => {
 
-                const octree = buildOctree(points, octantWidth);
+                const octree = buildOctree(points, octantWidth, origin, leafSize);
 
-                fc.pre(octree[0] !== 'empty')
-                fc.pre(octree[0] !== 'leaf')
+                if (octree[0] === 'leaf') return;
 
                 const stack = [];
                 let octants: Record<OctantDirections, Point[]> | null = null;
@@ -110,13 +110,10 @@ test('points are ordered in space correctly', () => {
                     octants = newOctants();
                 }
 
-                const visitLeaf = (p: Point, path: OctantDirections[]) => {
+                const visitLeaf = (ps: Point[], path: OctantDirections[]) => {
                     // has to exist because of precondition
                     const lastStepInPath = path[path.length-1];
-                    octants[lastStepInPath].push(p);
-                }
-
-                const visitEmpty = () => {
+                    octants[lastStepInPath].push(...ps);
                 }
 
                 const visitNodeDone = (path: OctantDirections[]) => {
@@ -169,15 +166,15 @@ test('points are ordered in space correctly', () => {
                     }
                 }
 
-                traverse(octree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
+                traverse(octree, visitLeaf, visitNode, visitNodeDone);
 
                 expect(stack).toEqual([]);
                 expect(octants).toBe(null);
             }
         ),
         { examples: [
-            [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            [fc_examples.twoPointsFailure, 1, fc_examples.context()],
+            // ...fc_examples.realData,
         ] }
     )
 })
@@ -190,13 +187,12 @@ test('depth of tree', () => {
             ({points, octantWidth}, ctx) => {
 
                 const octree = buildOctree(points, octantWidth);
-                const {internalNodes, leafNodes, emptyNodes, depth} = treeSize(octree);
-                const leaves = leafNodes + emptyNodes;
+                const {internalNodes, leafNodes, depth} = treeSize(octree);
 
                 const maxNumberOfNodes = (Math.pow(8, depth) - 1) / 7;
-                expect(internalNodes + leaves).toBeLessThanOrEqual(maxNumberOfNodes);
+                expect(internalNodes + leafNodes).toBeLessThanOrEqual(maxNumberOfNodes);
 
-                expect(leaves).toBe(internalNodes * 7 + 1);
+                expect(leafNodes).toBe(internalNodes * 7 + 1);
 
             }
         ),

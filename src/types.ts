@@ -22,5 +22,4 @@ export type Octants = Record<OctantDirections, Octree>
 
 export type Octree =
     | ['node', Octants]
-    | ['leaf', Point]
-    | ['empty']
+    | ['leaf', Point[]]

@@ -3,27 +3,22 @@ import { assert, recordMap } from "utils";
 import { add, point_format } from "vector-utils";
 
 export const traverse = (tree: Octree, 
-    leaf: (p: Point, path: OctantDirections[]) => void,
+    leaf: (ps: Point[], path: OctantDirections[]) => void,
     nodeStart: (path: OctantDirections[]) => void = () => {},
-    empty: (path: OctantDirections[]) => void = () => {},
     nodeDone: (path: OctantDirections[]) => void = () => {},
     path: OctantDirections[] = []
 ) => {
     switch (tree[0]) {
-        case 'empty': {
-            empty(path);
-            return;
-        }
         case 'leaf': {
-            const point = tree[1];
-            leaf(point, path);
+            const points = tree[1];
+            leaf(points, path);
             return;
         }
         case 'node': {
             const octants = tree[1];
             nodeStart(path);
             recordMap(octants, (direction, octree) =>
-                traverse(octree, leaf, nodeStart, empty, nodeDone, [...path, direction]));
+                traverse(octree, leaf, nodeStart, nodeDone, [...path, direction]));
             nodeDone(path);
             return;
         }
@@ -34,16 +29,14 @@ export const octree_format = (octree: Octree) => {
     let nodeStack = [];
     let currentOctants = [];
     let result = null;
-    traverse(octree, p => {
-        const formatted = point_format(p);
+    traverse(octree, ps => {
+        const formatted = "[" + ps.map(point_format).join(", ") + "]";
         currentOctants.push(formatted);
     }, () => {
         if (currentOctants.length > 0) {
             nodeStack.push(currentOctants);
         }
         currentOctants = [];
-    }, () => {
-        currentOctants.push('()');
     }, () => {
         if (nodeStack.length === 0) {
             result = `Node{ ${currentOctants.join(', ')} }`;
@@ -126,7 +119,6 @@ export const newOctants = (): Record<OctantDirections, Point[]> =>
 export const treeSize = (tree: Octree) => {
     let internalNodes = 0;
     let leafNodes = 0;
-    let emptyNodes = 0;
 
     let currentDepth = 0;
     let depth = 0;
@@ -134,13 +126,6 @@ export const treeSize = (tree: Octree) => {
     const visitNode = () => {
         internalNodes++;
         currentDepth++;
-    }
-
-    const visitEmpty = () => {
-        emptyNodes++;
-        currentDepth++;
-        depth = Math.max(depth, currentDepth);
-        currentDepth--;
     }
 
     const visitLeaf = () => {
@@ -155,18 +140,13 @@ export const treeSize = (tree: Octree) => {
         currentDepth--;
     }
 
-    traverse(tree, visitLeaf, visitNode, visitEmpty, visitNodeDone);
+    traverse(tree, visitLeaf, visitNode, visitNodeDone);
 
-    if (currentDepth !== 0) {
-        console.log(tree)
-        console.log(depth)
-    }
     assert("depth is zero after traversal", currentDepth === 0);
 
     return {
         internalNodes,
         leafNodes,
-        emptyNodes,
         depth,
     };
 }
