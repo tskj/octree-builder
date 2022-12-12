@@ -12,7 +12,7 @@ import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octr
  *
  * precondition: all points need to be unique! duplicate points lead to stack overflow
  */
-export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin, leafSize = 10000): Octree => {
+export const buildOctree = (points: Point[], octantSize: number, octantCenter: Point = origin, leafSize = 1e5): Octree => {
 
     if (points.length <= leafSize) return ['leaf', points];
 

@@ -40,7 +40,7 @@ test('parse binary format', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, fc_examples.context()]] : []),
         ] }
     )
 })

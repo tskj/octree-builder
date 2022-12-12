@@ -11,10 +11,11 @@ test('retrieved points match input points', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
+            fc.integer({min: 1, max: 10}),
             fc.context(),
-            ({points, octantWidth}, ctx) => {
+            ({points, octantWidth}, leafSize, ctx) => {
 
-                const octree = buildOctree(points, octantWidth);
+                const octree = buildOctree(points, octantWidth, origin, leafSize);
 
                 const list = [];
                 traverse(octree, ps => list.push(...ps));
@@ -23,8 +24,8 @@ test('retrieved points match input points', () => {
             }
         ),
         { examples: [
-            [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            [fc_examples.twoPointsFailure, 1, fc_examples.context()],
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -33,10 +34,11 @@ test('all points exist in octree', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
+            fc.integer({min: 1, max: 10}),
             fc.context(),
-            ({points, octantWidth}, ctx) => {
+            ({points, octantWidth}, leafSize, ctx) => {
 
-                const octree = buildOctree(points, octantWidth);
+                const octree = buildOctree(points, octantWidth, origin, leafSize);
 
                 for (const point of points) {
                     const nearestPoints = lookupNearest(point, octree, octantWidth);
@@ -45,8 +47,8 @@ test('all points exist in octree', () => {
             }
         ),
         { examples: [
-            [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            [fc_examples.twoPointsFailure, 1, fc_examples.context()],
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -55,10 +57,11 @@ test('all 8 octants should not be empty', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
+            fc.integer({min: 1, max: 10}),
             fc.context(),
-            ({points, octantWidth}, ctx) => {
+            ({points, octantWidth}, leafSize, ctx) => {
 
-                const octree = buildOctree(points, octantWidth);
+                const octree = buildOctree(points, octantWidth, origin, leafSize);
 
                 let emptyInaRow = 0;
 
@@ -84,8 +87,8 @@ test('all 8 octants should not be empty', () => {
             }
         ),
         { examples: [
-            [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            [fc_examples.twoPointsFailure, 1, fc_examples.context()],
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -100,7 +103,7 @@ test('points are ordered in space correctly', () => {
 
                 const octree = buildOctree(points, octantWidth, origin, leafSize);
 
-                if (octree[0] === 'leaf') return;
+                fc.pre(octree[0] !== 'leaf');
 
                 const stack = [];
                 let octants: Record<OctantDirections, Point[]> | null = null;
@@ -174,7 +177,7 @@ test('points are ordered in space correctly', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            // ...fc_examples.realData,
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -183,10 +186,11 @@ test('depth of tree', () => {
     fc.assert(
         fc.property(
             fc_listOfUniquePoints(),
+            fc.integer({min: 1, max: 10}),
             fc.context(),
-            ({points, octantWidth}, ctx) => {
+            ({points, octantWidth}, leafSize, ctx) => {
 
-                const octree = buildOctree(points, octantWidth);
+                const octree = buildOctree(points, octantWidth, origin, leafSize);
                 const {internalNodes, leafNodes, depth} = treeSize(octree);
 
                 const maxNumberOfNodes = (Math.pow(8, depth) - 1) / 7;
@@ -197,8 +201,8 @@ test('depth of tree', () => {
             }
         ),
         { examples: [
-            [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...fc_examples.realData,
+            [fc_examples.twoPointsFailure, 1, fc_examples.context()],
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })

@@ -48,5 +48,5 @@ export const fc_examples = {
     // asserts are on when building the octree
     twoPointsFailure: {"points":[{"x":-5e-324,"y":8749.999999999982,"z":-5e-324},{"x":-5e-324,"y":7656.249999999984,"z":-5e-324}],"octantWidth":8749.999999999982},
 
-    realData: points ? [[{ points, octantWidth: 500, }, context()]] : [],
+    realData: points,
 }
