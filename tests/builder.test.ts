@@ -3,7 +3,7 @@ import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
 import { buildOctree, lookupNearest } from "../src/builder";
 import { newOctants, traverse, treeSize } from "octree-utils";
-import { point_serialize } from "point-utils";
+import { point_serialize } from "vector-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
 

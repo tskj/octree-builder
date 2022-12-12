@@ -1,5 +1,6 @@
 import { Point } from "types";
-import { assert, distSq, isFiniteNumber, } from "utils";
+import { assert, isFiniteNumber, } from "utils";
+import { lengthSq } from "vector-utils";
 
 /**
  * parses binary format and converts from polar coordinates to
@@ -37,6 +38,7 @@ export const parse = (buffer: ArrayBufferLike): Point[] => {
         // not really sure why the scanner gives double angles for both axes, but it does
         assert("h_angle makes sense", -2 * Math.PI <= h_angle && h_angle <= 2 * Math.PI);
         assert("v_angle makes sense", 0 <= v_angle && v_angle <= 2 * Math.PI);
+        assert("distance makes sense", distance > 0);
 
         const x = -distance * Math.sin(v_angle) * Math.sin(h_angle);
         const y = -distance * Math.cos(v_angle);
@@ -47,9 +49,9 @@ export const parse = (buffer: ArrayBufferLike): Point[] => {
         };
 
 
-        const dist2 = distSq(point);
-        assert("calculated point is not at origin", dist2 > 0.10 ** 2);
-        assert("calculated point is not too far away", dist2 < 1000 ** 2);
+        const len2 = lengthSq(point);
+        assert("calculated point is not at origin", len2 >= 0.10 ** 2);
+        assert("calculated point is not too far away", len2 <= 10000 ** 2);
 
         points.push(point);
     }

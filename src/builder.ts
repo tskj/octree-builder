@@ -1,6 +1,6 @@
 import { Point, Octree, } from "types";
 import { recordMap } from "utils";
-import { origin } from "point-utils";
+import { origin } from "vector-utils";
 import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
 
 /**
@@ -38,7 +38,7 @@ export const buildOctree = (points: Point[], octantSize: number, octantCenter: P
  * 
  * returns undefined if that octant is empty
  */
-export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin) => {
+export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin): Point | undefined => {
     switch (tree[0]) {
         case 'empty': {
             return undefined;

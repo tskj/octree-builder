@@ -1,6 +1,6 @@
 import { OctantDirections, octantDirections, Octree, Point } from "types";
 import { assert, recordMap } from "utils";
-import { add, point_format } from "point-utils";
+import { add, point_format } from "vector-utils";
 
 export const traverse = (tree: Octree, 
     leaf: (p: Point, path: OctantDirections[]) => void,
@@ -62,7 +62,7 @@ export const octree_format = (octree: Octree) => {
  * in other words which octant it needs to be placed in
  */
 export const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
-    const eps = 1e-10
+    const eps = 1e-10;
     assert("point is within octants along X axis", octantCenter.x - octantSize - eps <= point.x && point.x <= octantCenter.x + octantSize + eps);
     assert("point is within octants along Y axis", octantCenter.y - octantSize - eps <= point.y && point.y <= octantCenter.y + octantSize + eps);
     assert("point is within octants along Z axis", octantCenter.z - octantSize - eps <= point.z && point.z <= octantCenter.z + octantSize + eps);

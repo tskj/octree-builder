@@ -1,16 +1,16 @@
 import fc from 'fast-check';
 import { readFileSync } from 'node:fs';
 
-import { point_parse, point_serialize } from 'point-utils';
+import { point_parse, point_serialize } from 'vector-utils';
 import { Point } from 'types';
 import { maxBoundingBox } from './utils';
 import { parse } from "binary-format-parser";
 
 export const fc_point = (): fc.Arbitrary<Point> =>
     fc.tuple(
-        fc.double({min: -10000, max: 10000, noNaN: true}), 
-        fc.double({min: -10000, max: 10000, noNaN: true}), 
-        fc.double({min: -10000, max: 10000, noNaN: true}))
+        fc.double({min: -1000, max: 1000, noNaN: true}),
+        fc.double({min: -1000, max: 1000, noNaN: true}),
+        fc.double({min: -1000, max: 1000, noNaN: true}))
     .map(([x, y, z]) => ({x, y, z}))
 
 /**
@@ -48,5 +48,5 @@ export const fc_examples = {
     // asserts are on when building the octree
     twoPointsFailure: {"points":[{"x":-5e-324,"y":8749.999999999982,"z":-5e-324},{"x":-5e-324,"y":7656.249999999984,"z":-5e-324}],"octantWidth":8749.999999999982},
 
-    realData: points ? [[{ points, octantWidth: 500, }, context]] : [],
+    realData: points ? [[{ points, octantWidth: 500, }, context()]] : [],
 }
