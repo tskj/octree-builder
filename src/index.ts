@@ -1,9 +1,10 @@
 import { buildOctree, lookupNearest } from "builder";
-import { readFile } from "node:fs/promises"
+import { readFile, writeFile } from "node:fs/promises"
 import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
 import { distSq, length, mat_m_mat, mat_m_v, origin, rotX, rotY } from "vector-utils";
 import { closeEnoughSq, horizontal_resolution, leafSize, maxSteps, octantSize, stepSize, vertical_resolution } from "parameters";
+import { assert } from "utils";
 
 const file = await readFile("./data/pointcloud.bin");
 const meta = readFile("./data/metadata.json", {encoding: 'utf8'});
@@ -95,3 +96,19 @@ for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_
 console.log("vertical res", vertical_resolution, image.length)
 console.log("horizontal res", horizontal_resolution, image[0].length)
 console.log("misses", misses)
+
+const output = new ArrayBuffer(vertical_resolution * horizontal_resolution);
+const outputView = new DataView(output)
+
+for (let y = 0; y < vertical_resolution; y++) {
+    for (let x = 0; x < horizontal_resolution; x++) {
+        const depth = image[y][x];
+        const pixel = Math.floor(255 * (1 - depth / (stepSize * maxSteps + 1)));
+
+        assert("pixel value is legal", 0 <= pixel && pixel <= 255);
+
+        outputView.setUint8(y * horizontal_resolution + x, pixel);
+    }
+}
+
+await writeFile("./data/depthmap.bin", output);

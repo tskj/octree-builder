@@ -6,6 +6,7 @@ import { getAll, newOctants, traverse, treeSize } from "octree-utils";
 import { origin, point_serialize } from "vector-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
+import { octantSize } from "parameters";
 
 test('retrieved points match input points', () => {
     fc.assert(
@@ -24,7 +25,7 @@ test('retrieved points match input points', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -47,7 +48,7 @@ test('all points exist in octree', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -87,7 +88,7 @@ test('all 8 octants should not be empty', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -176,7 +177,7 @@ test('points are ordered in space correctly', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })
@@ -201,7 +202,7 @@ test('depth of tree', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, 1, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, 1e5, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, 1e5, fc_examples.context()]] : []),
         ] }
     )
 })

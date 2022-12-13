@@ -2,6 +2,7 @@ import fc  from 'fast-check';
 import { parse } from 'binary-format-parser';
 import { distSq, dot, length, lengthSq, yAxis } from 'vector-utils';
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
+import { octantSize } from 'parameters';
 
 test('parse binary format', () => {
     fc.assert(
@@ -40,7 +41,7 @@ test('parse binary format', () => {
         ),
         { examples: [
             [fc_examples.twoPointsFailure, fc_examples.context()],
-            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: 500 }, fc_examples.context()]] : []),
+            ...(fc_examples.realData ? [[{ points: fc_examples.realData, octantWidth: octantSize }, fc_examples.context()]] : []),
         ] }
     )
 })
