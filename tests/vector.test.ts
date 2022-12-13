@@ -1,5 +1,5 @@
 import fc  from 'fast-check';
-import { identity_matrix, mat_m_mat, mat_m_v, m_dimensions } from 'vector-utils';
+import { identity_matrix, length, mat_m_mat, mat_m_v, m_dimensions, rotX, rotY } from 'vector-utils';
 import { fc_matrix, fc_vector } from './arbitraries';
 import { expectEqualMatrices } from './utils';
 
@@ -77,4 +77,17 @@ test('matrix x vector multiplication works', () => {
             }
         ),
     )
+})
+
+test('rotation matrices do the expected rotation orders', () => {
+    const negativeZ = [0, 0, -1];
+    const rotation = mat_m_mat(rotY(- 1.5 * Math.PI / 2), rotX(Math.PI / 4));
+    const [x, y, z] = mat_m_v(rotation, negativeZ);
+
+    // should end up in the positive octant
+    expect(x).toBeGreaterThan(0);
+    expect(y).toBeGreaterThan(0);
+    expect(z).toBeGreaterThan(0);
+
+    expect(length({ x, y, z })).toBeCloseTo(1)
 })

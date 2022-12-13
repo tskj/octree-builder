@@ -120,3 +120,31 @@ export const identity_matrix = (dimensions: number): number[][] => {
     }
     return result;
 }
+
+/**
+ * right-handed rotation about the x-axis
+ * of `a` radians
+ */
+export const rotX = (a: number) => {
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+    return [
+        [1,   0,    0],
+        [0, cos, -sin],
+        [0, sin,  cos],
+    ];
+}
+
+/**
+ * right-handed rotation about the y-axis
+ * of `a` radians
+ */
+export const rotY = (a: number) => {
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+    return [
+        [cos,  0, sin],
+        [0,    1,   0],
+        [-sin, 0, cos],
+    ];
+}

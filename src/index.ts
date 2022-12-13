@@ -1,8 +1,8 @@
-import { buildOctree } from "builder";
+import { buildOctree, lookupNearest } from "builder";
 import { readFile } from "node:fs/promises"
 import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
-import { mat_m_mat, mat_m_v } from "vector-utils";
+import { distSq, length, mat_m_mat, mat_m_v, rotX, rotY } from "vector-utils";
 
 const file = await readFile("./data/pointcloud.bin");
 const meta = readFile("./data/metadata.json", {encoding: 'utf8'});
@@ -53,3 +53,50 @@ console.log("point", points[123]);
 // console.log("octree point", lookupNearest(points[123], octree, 500));
 
 console.log("size", treeSize(octree));
+
+const image: number[][] = [];
+
+const closeEnoughSq = 0.01 ** 2;
+const stepSize = 0.01;
+const maxSteps = 10000;
+
+let misses = 0;
+
+const vertical_resolution = 1024;
+const horizontal_resolution = 8192;
+for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_resolution) {
+    const scanline = [];
+    for (let theta = 0; theta < 2 * Math.PI; theta += 2 * Math.PI / horizontal_resolution) {
+        const negativeZ = [0, 0, -1];
+        const rotation = mat_m_mat(rotY(theta), rotX(phi));
+        let [x, y, z] = mat_m_v(rotation, negativeZ);
+
+        const dx = x * stepSize;
+        const dy = y * stepSize;
+        const dz = z * stepSize;
+
+        let k: number;
+        for (k = 0; k < maxSteps; k++) {
+            const sample = { x, y, z };
+            const points = lookupNearest(sample, octree, 500);
+            if (points.some(p => distSq(p, sample) < closeEnoughSq)) {
+                const depth = length(sample)
+                scanline.push(depth)
+                break;
+            } else {
+                x += dx;
+                y += dy;
+                z += dz;
+            }
+        }
+        if (k >= maxSteps) {
+            scanline.push(stepSize * maxSteps + 1);
+            misses++;
+        }
+    }
+    image.push(scanline);
+}
+
+console.log("vertical res", vertical_resolution, image.length)
+console.log("horizontal res", horizontal_resolution, image[0].length)
+console.log("misses", misses)
