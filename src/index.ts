@@ -2,7 +2,8 @@ import { buildOctree, lookupNearest } from "builder";
 import { readFile } from "node:fs/promises"
 import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
-import { distSq, length, mat_m_mat, mat_m_v, rotX, rotY } from "vector-utils";
+import { distSq, length, mat_m_mat, mat_m_v, origin, rotX, rotY } from "vector-utils";
+import { closeEnoughSq, horizontal_resolution, leafSize, maxSteps, octantSize, stepSize, vertical_resolution } from "parameters";
 
 const file = await readFile("./data/pointcloud.bin");
 const meta = readFile("./data/metadata.json", {encoding: 'utf8'});
@@ -36,7 +37,7 @@ for (const i in points) {
     points[i] = { x, y, z };
 }
 
-const octree = buildOctree(points, 500);
+const octree = buildOctree(points, octantSize, origin, leafSize);
 
 const list = getAll(octree);
 
@@ -56,14 +57,8 @@ console.log("size", treeSize(octree));
 
 const image: number[][] = [];
 
-const closeEnoughSq = 0.01 ** 2;
-const stepSize = 0.01;
-const maxSteps = 10000;
-
 let misses = 0;
 
-const vertical_resolution = 1024;
-const horizontal_resolution = 8192;
 for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_resolution) {
     const scanline = [];
     for (let theta = 0; theta < 2 * Math.PI; theta += 2 * Math.PI / horizontal_resolution) {
@@ -78,7 +73,7 @@ for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_
         let k: number;
         for (k = 0; k < maxSteps; k++) {
             const sample = { x, y, z };
-            const points = lookupNearest(sample, octree, 500);
+            const points = lookupNearest(sample, octree, octantSize);
             if (points.some(p => distSq(p, sample) < closeEnoughSq)) {
                 const depth = length(sample)
                 scanline.push(depth)
