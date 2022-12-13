@@ -46,6 +46,8 @@ export const point_parse = (point: string): Point => {
  */
 
 /**
+ * multiplies a column vector by a matrix
+ *
  * expects a row-major matrix `m` and a column vector `v`
  * these need to have dimensions for which matrix multiplication is defined
  */
@@ -76,6 +78,8 @@ export const m_dimensions = (m: number[][]) => {
 }
 
 /**
+ * multiples the two matrices together
+ *
  * both input matrices and output matrix are row-major, dimensions need
  * to match so that matrix multiplication is defined (this is asserted on
  * by the implementation)
