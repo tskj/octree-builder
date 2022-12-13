@@ -4,7 +4,6 @@ import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
 import { distSq, length, mat_m_mat, mat_m_v, origin, rotX, rotY } from "vector-utils";
 import { closeEnoughSq, horizontal_resolution, leafSize, maxSteps, octantSize, stepSize, vertical_resolution } from "parameters";
-import { assert } from "utils";
 
 const file = await readFile("./data/pointcloud.bin");
 const meta = readFile("./data/metadata.json", {encoding: 'utf8'});
@@ -13,10 +12,10 @@ const points = parse(file.buffer);
 
 const metadata = await meta.then(x => JSON.parse(x));
 let tiltMatrix = [
-    [metadata.tiltMatrix[0], metadata.tiltMatrix[1], metadata.tiltMatrix[2], metadata.tiltMatrix[3]],
-    [metadata.tiltMatrix[4], metadata.tiltMatrix[5], metadata.tiltMatrix[6], metadata.tiltMatrix[7]],
-    [metadata.tiltMatrix[8], metadata.tiltMatrix[9], metadata.tiltMatrix[10], metadata.tiltMatrix[11]],
-    [metadata.tiltMatrix[12], metadata.tiltMatrix[13], metadata.tiltMatrix[14], metadata.tiltMatrix[15]],
+    [metadata.tiltMatrix[0], metadata.tiltMatrix[4], metadata.tiltMatrix[8], metadata.tiltMatrix[12]],
+    [metadata.tiltMatrix[1], metadata.tiltMatrix[5], metadata.tiltMatrix[9], metadata.tiltMatrix[13]],
+    [metadata.tiltMatrix[2], metadata.tiltMatrix[6], metadata.tiltMatrix[10], metadata.tiltMatrix[14]],
+    [metadata.tiltMatrix[3], metadata.tiltMatrix[7], metadata.tiltMatrix[11], metadata.tiltMatrix[15]],
 ];
 
 tiltMatrix = mat_m_mat([
@@ -59,6 +58,8 @@ console.log("size", treeSize(octree));
 const image: number[][] = [];
 
 let misses = 0;
+let closest = Infinity;
+let farthest = 0;
 
 for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_resolution) {
     const scanline = [];
@@ -78,6 +79,8 @@ for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_
             if (points.some(p => distSq(p, sample) < closeEnoughSq)) {
                 const depth = length(sample)
                 scanline.push(depth)
+                if (depth < closest) closest = depth;
+                if (depth > farthest) farthest = depth;
                 break;
             } else {
                 x += dx;
@@ -93,6 +96,8 @@ for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_
     image.push(scanline);
 }
 
+const range = farthest - closest;
+
 console.log("vertical res", vertical_resolution, image.length)
 console.log("horizontal res", horizontal_resolution, image[0].length)
 console.log("misses", misses)
@@ -103,9 +108,10 @@ const outputView = new DataView(output)
 for (let y = 0; y < vertical_resolution; y++) {
     for (let x = 0; x < horizontal_resolution; x++) {
         const depth = image[y][x];
-        const pixel = Math.floor(255 * (1 - depth / (stepSize * maxSteps + 1)));
+        let pixel = Math.floor(255 * (1 - (depth - closest) / range));
 
-        assert("pixel value is legal", 0 <= pixel && pixel <= 255);
+        if (pixel < 0) pixel = 0;
+        if (pixel > 255) pixel = 255;
 
         outputView.setUint8(y * horizontal_resolution + x, pixel);
     }
