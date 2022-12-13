@@ -1,4 +1,5 @@
 import { OctantDirections, Point } from "types";
+import { m_dimensions } from "vector-utils";
 
 /**
  * checks if the lists contain the same elements regardless of ordering - i.e. they
@@ -48,3 +49,23 @@ export const maxBoundingBox = (points: Point[]) =>
     Math.max(...points.map(({x,y,z}) =>
                 Math.max(
                     Math.abs(x), Math.abs(y), Math.abs(z))))
+
+/**
+ * checks numerical equalness to a precision of 1e-5
+ */
+export const expectEqualMatrices = (m1: number[][], m2: number[][]) => {
+    const dim1 = m_dimensions(m1);
+    const dim2 = m_dimensions(m2);
+
+    expect(dim1).toEqual(dim2);
+
+    for (const row_index in m1) {
+        const row = m1[row_index];
+        for (const col_index in row) {
+            const a = row[col_index];
+            const b = m2[row_index][col_index];
+
+            expect(Math.abs(a-b)).toBeLessThanOrEqual(1e-5);
+        }
+    }
+}

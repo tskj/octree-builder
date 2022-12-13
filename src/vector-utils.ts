@@ -1,4 +1,5 @@
 import { Point } from "types";
+import { assert } from "utils";
 
 export const origin: Point = { x: 0, y: 0, z: 0 };
 
@@ -38,4 +39,80 @@ export const point_serialize = ({x, y, z}: Point) => `${x}:${y}:${z}`
 export const point_parse = (point: string): Point => {
     const [x, y, z] = point.split(':').map(parseFloat)
     return {x, y, z}
+}
+
+/**
+ * Matrix stuff =========================
+ */
+
+/**
+ * expects a row-major matrix `m` and a column vector `v`
+ * these need to have dimensions for which matrix multiplication is defined
+ */
+export const mat_m_v = (m: number[][], v: number[]): number[] => {
+    const vdot = (row: number[]) => {
+        let result = 0;
+        for (const i in row) {
+            result += row[i] * v[i];
+        }
+        return result;
+    }
+    return m.map(vdot)
+}
+
+/**
+ * returns the dimension of the matrix, throws if it's staggered
+ */
+export const m_dimensions = (m: number[][]) => {
+    const height = m.length;
+    let width = null;
+    for (const row of m) {
+        if (width) {
+            assert("matrix is not staggered", width === row.length);
+        }
+        width = row.length;
+    }
+    return { height, width };
+}
+
+/**
+ * both input matrices and output matrix are row-major, dimensions need
+ * to match so that matrix multiplication is defined (this is asserted on
+ * by the implementation)
+ */
+export const mat_m_mat = (m1: number[][], m2: number[][]): number[][] => {
+
+    const dim1 = m_dimensions(m1);
+    const dim2 = m_dimensions(m2);
+
+    assert("matrix multiplication is defined", dim1.width === dim2.height);
+
+    const result = Array.from({length: dim1.height}).map(() => Array(dim2.width).fill(0));
+
+    for (const row_index in result) {
+        const row = result[row_index];
+        for (const col_index in row) {
+            for (let k = 0; k < dim1.width; k++) {
+                row[col_index] += m1[row_index][k] * m2[k][col_index];
+            }
+        }
+    }
+
+    const dim3 = m_dimensions(result);
+
+    assert("result dimensions are correct", dim1.height === dim3.height && dim2.width === dim3.width);
+
+    return result;
+}
+
+/**
+ * produces a square matrix of `dimensions` size, with ones along the diagonal
+ * and zeroes elsewhere
+ */
+export const identity_matrix = (dimensions: number): number[][] => {
+    const result = Array.from({length: dimensions}).map(() => Array(dimensions).fill(0));
+    for (let k = 0; k < dimensions; k++) {
+        result[k][k] = 1;
+    }
+    return result;
 }

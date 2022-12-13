@@ -1,5 +1,5 @@
-import { parse } from 'binary-format-parser';
 import fc  from 'fast-check';
+import { parse } from 'binary-format-parser';
 import { distSq, dot, length, lengthSq, yAxis } from 'vector-utils';
 import { fc_examples, fc_listOfUniquePoints, } from "./arbitraries";
 
