@@ -9,6 +9,6 @@ def read(path):
         return bs
 
 bs = read("./data/depthmap.bin")
-bs = np.asarray(bs).astype(np.uint8).repeat(3).reshape(1024, 8192, 3)
+bs = np.asarray(bs).astype(np.uint8).repeat(3).reshape(2048, 8192, 3)
 image = Image.fromarray(bs)
 image.save("./data/depthmap.png", "png")
