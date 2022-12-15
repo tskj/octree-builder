@@ -65,10 +65,7 @@ const eqSet = (xs, ys) =>
     [...xs].every((x) => ys.has(x));
 
 console.log("sets equal?", eqSet(new Set(list), new Set(points)));
-
 console.log("point", points[123]);
-// console.log("octree point", lookupNearest(points[123], octree, 500));
-
 console.log("size", treeSize(octree));
 
 console.timeEnd("sampling...")
@@ -80,9 +77,9 @@ let misses = 0;
 let closest = Infinity;
 let farthest = 0;
 
-for (let phi = -Math.PI / 4; phi < Math.PI / 4; phi += (Math.PI / 2) / vertical_resolution) {
+for (let phi = Math.PI / 4; phi > -Math.PI / 4; phi -= (Math.PI / 2) / vertical_resolution) {
     const scanline = [];
-    for (let theta = 0; theta < 2 * Math.PI; theta += 2 * Math.PI / horizontal_resolution) {
+    for (let theta = 2 * Math.PI; theta > 0; theta -= 2 * Math.PI / horizontal_resolution) {
         const negativeZ = [0, 0, -1];
         const rotation = mat_m_mat(rotY(theta), rotX(phi));
         let [x, y, z] = mat_m_v(rotation, negativeZ);

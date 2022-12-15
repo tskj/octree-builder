@@ -1,5 +1,5 @@
 export const octantWidth = 500;
-export const leafSize = 200;
+export const leafSize = 1000;
 
 export const closeEnoughSq = 0.01 ** 2;
 export const stepSize = 0.01;
