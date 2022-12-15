@@ -33,7 +33,7 @@ export const fc_listOfUniquePoints = () =>
         })
 
 export const fc_vector = (length: number) =>
-        fc.array(fc.double({noNaN: true, min: 1e-1, max: 1e5}), {minLength: length, maxLength: length});
+        fc.array(fc.double({noNaN: true, min: 1e-1, max: 1e3}), {minLength: length, maxLength: length});
 
 export const fc_matrix = (width: number, height: number) =>
         fc.array(fc_vector(width), {minLength: height, maxLength: height});

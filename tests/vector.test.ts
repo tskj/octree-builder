@@ -55,7 +55,41 @@ test('matrix multiplication is defined', () => {
     )
 })
 
-test('matrix x vector multiplication works', () => {
+test('matrix multiplication is associative', () => {
+    fc.assert(
+        fc.property(
+            fc.tuple(
+                fc.integer({min: 1, max: 4}),
+                fc.integer({min: 1, max: 4}),
+                fc.integer({min: 1, max: 4}),
+                fc.integer({min: 1, max: 4}),
+            ).chain(([firstHeight, firstWidt, secondWidth, thirdWidth]) =>
+                fc.tuple(
+                    fc_matrix(firstWidt, firstHeight),
+                    fc_matrix(secondWidth, firstWidt),
+                    fc_matrix(thirdWidth, secondWidth))),
+            fc.context(),
+            ([m1, m2, m3], ctx) => {
+                const { height } = m_dimensions(m1);
+                const { width } = m_dimensions(m3);
+
+                const result1 = mat_m_mat(mat_m_mat(m1, m2), m3);
+                const result2 = mat_m_mat(m1, mat_m_mat(m2, m3));
+
+                const dim1 = m_dimensions(result1);
+                const dim2 = m_dimensions(result2);
+
+                expect(dim1).toEqual(dim2);
+                expect(dim1.width).toBe(width);
+                expect(dim1.height).toBe(height);
+
+                expectEqualMatrices(result1, result2);
+            }
+        ),
+    )
+})
+
+test('matrix * vector multiplication works', () => {
     fc.assert(
         fc.property(
             fc.tuple(
