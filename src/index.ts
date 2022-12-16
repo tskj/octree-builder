@@ -111,7 +111,6 @@ for (let v = 0; v < vertical_resolution; v++) {
         if (k >= maxSteps) {
             const depth = stepSize * maxSteps + .1
             scanline.push(depth);
-            farthest = depth;
             misses++;
         }
     }
