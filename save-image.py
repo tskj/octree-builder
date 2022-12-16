@@ -1,5 +1,16 @@
 import PIL.Image as Image
 import numpy as np
+import json
+
+vertical_resolution = None
+horizontal_resolution = None
+
+with open("src/parameters.json") as f:
+    parameters = json.load(f)
+
+    vertical_resolution = parameters['vertical_resolution']
+    horizontal_resolution = parameters['horizontal_resolution']
+
 
 def read(path):
     with open(path, "rb") as f:
@@ -9,6 +20,6 @@ def read(path):
         return bs
 
 bs = read("./data/depthmap.bin")
-bs = np.asarray(bs).astype(np.uint8).repeat(3).reshape(2048, 8192, 3)
+bs = np.asarray(bs).astype(np.uint8).repeat(3).reshape(vertical_resolution, horizontal_resolution, 3)
 image = Image.fromarray(bs)
 image.save("./data/depthmap.png", "png")

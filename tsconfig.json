@@ -14,6 +14,7 @@
       "bun-types",
       "jest",
     ],
+    "resolveJsonModule": true,
     "esModuleInterop": true,
   }
 }

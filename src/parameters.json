@@ -1,0 +1,9 @@
+{
+    "octantWidth": 500,
+    "leafSize": 512,
+    "closeEnough": 0.01,
+    "stepSize": 0.01,
+    "maxSteps": 10000,
+    "vertical_resolution": 2048,
+    "horizontal_resolution": 8192
+}

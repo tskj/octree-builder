@@ -6,7 +6,7 @@ import { getAll, newOctants, traverse, treeSize } from "octree-utils";
 import { origin, point_serialize } from "vector-utils";
 import { expectOrderingOfPoints, expectToBePermutation } from "./utils";
 import { OctantDirections, Point } from "types";
-import { octantWidth } from "parameters";
+import { octantWidth } from "parameters.json";
 
 test('retrieved points match input points', () => {
     fc.assert(

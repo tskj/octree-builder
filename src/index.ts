@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises"
 import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
 import { distSq, length, mat_m_mat, mat_m_v, origin, rotX, rotY } from "vector-utils";
-import { closeEnoughSq, horizontal_resolution, leafSize, maxSteps, octantWidth, stepSize, vertical_resolution } from "parameters";
+import { closeEnough, horizontal_resolution, leafSize, maxSteps, octantWidth, stepSize, vertical_resolution } from "parameters.json";
 
 console.time("file read, parsing...")
 
@@ -77,9 +77,13 @@ let misses = 0;
 let closest = Infinity;
 let farthest = 0;
 
-for (let phi = Math.PI / 4; phi > -Math.PI / 4; phi -= (Math.PI / 2) / vertical_resolution) {
+for (let v = 0; v < vertical_resolution; v++) {
+    const phi = Math.PI / 4 - (Math.PI / 2) * (v / vertical_resolution);
+
     const scanline = [];
-    for (let theta = 2 * Math.PI; theta > 0; theta -= 2 * Math.PI / horizontal_resolution) {
+    for (let h = 0; h < horizontal_resolution; h++) {
+        const theta = 2 * Math.PI - (2 * Math.PI) * (h / horizontal_resolution);
+
         const negativeZ = [0, 0, -1];
         const rotation = mat_m_mat(rotY(theta), rotX(phi));
         let [x, y, z] = mat_m_v(rotation, negativeZ);
@@ -92,7 +96,7 @@ for (let phi = Math.PI / 4; phi > -Math.PI / 4; phi -= (Math.PI / 2) / vertical_
         for (k = 0; k < maxSteps; k++) {
             const sample = { x, y, z };
             const points = lookupNearest(sample, octree, octantWidth);
-            if (points.some(p => distSq(p, sample) < closeEnoughSq)) {
+            if (points.some(p => distSq(p, sample) < closeEnough ** 2)) {
                 const depth = length(sample)
                 scanline.push(depth)
                 if (depth < closest) closest = depth;
@@ -105,7 +109,9 @@ for (let phi = Math.PI / 4; phi > -Math.PI / 4; phi -= (Math.PI / 2) / vertical_
             }
         }
         if (k >= maxSteps) {
-            scanline.push(stepSize * maxSteps + 1);
+            const depth = stepSize * maxSteps + .1
+            scanline.push(depth);
+            farthest = depth;
             misses++;
         }
     }
@@ -125,15 +131,15 @@ console.log("farthest", farthest)
 const output = new ArrayBuffer(vertical_resolution * horizontal_resolution);
 const outputView = new DataView(output)
 
-for (let y = 0; y < vertical_resolution; y++) {
-    for (let x = 0; x < horizontal_resolution; x++) {
-        const depth = image[y][x];
+for (let v = 0; v < vertical_resolution; v++) {
+    for (let h = 0; h < horizontal_resolution; h++) {
+        const depth = image[v][h];
         let pixel = Math.floor(255 * (1 - (depth - closest) / range));
 
         if (pixel < 0) pixel = 0;
         if (pixel > 255) pixel = 255;
 
-        outputView.setUint8(y * horizontal_resolution + x, pixel);
+        outputView.setUint8(v * horizontal_resolution + h, pixel);
     }
 }
 
