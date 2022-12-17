@@ -11,7 +11,6 @@ with open("src/parameters.json") as f:
     vertical_resolution = parameters['vertical_resolution']
     horizontal_resolution = parameters['horizontal_resolution']
 
-
 def read(path):
     with open(path, "rb") as f:
         bs = []
@@ -20,6 +19,6 @@ def read(path):
         return bs
 
 bs = read("./data/depthmap.bin")
-bs = np.asarray(bs).astype(np.uint8).repeat(3).reshape(vertical_resolution, horizontal_resolution, 3)
+bs = np.asarray(bs).astype(np.uint8).reshape(vertical_resolution, horizontal_resolution, 3)
 image = Image.fromarray(bs)
 image.save("./data/depthmap.png", "png")

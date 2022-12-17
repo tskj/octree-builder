@@ -127,7 +127,7 @@ console.log("misses", misses)
 console.log("closest", closest)
 console.log("farthest", farthest)
 
-const output = new ArrayBuffer(vertical_resolution * horizontal_resolution);
+const output = new ArrayBuffer(vertical_resolution * horizontal_resolution * 3);
 const outputView = new DataView(output)
 
 for (let v = 0; v < vertical_resolution; v++) {
@@ -138,7 +138,15 @@ for (let v = 0; v < vertical_resolution; v++) {
         if (pixel < 0) pixel = 0;
         if (pixel > 255) pixel = 255;
 
-        outputView.setUint8(v * horizontal_resolution + h, pixel);
+        if (pixel === 0 && depth > stepSize * maxSteps) {
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 0, 0);
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 1, 255);
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 2, 0);
+        } else {
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 0, pixel);
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 1, pixel);
+            outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 2, pixel);
+        }
     }
 }
 
