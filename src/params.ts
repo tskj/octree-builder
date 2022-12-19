@@ -16,3 +16,7 @@ export const maxSteps = params['maxSteps']
 
 export const vertical_resolution = params['vertical_resolution']
 export const horizontal_resolution = params['horizontal_resolution']
+
+export const pointcloudFile = params['pointcloud_input']
+export const metadataFile = params['metadata_input']
+export const depthmapFile = params['depthmap_output']

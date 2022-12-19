@@ -1,6 +1,6 @@
 import { Point } from "types";
 import { assert, isFiniteNumber, } from "utils";
-import { lengthSq } from "vector-utils";
+import { lengthSq, mat_m_mat } from "vector-utils";
 
 /**
  * parses binary format and converts from polar coordinates to
@@ -59,4 +59,32 @@ export const parse = (buffer: ArrayBufferLike): Point[] => {
     assert("entire file is read", numberOfPointsRead === view.byteLength / 16);
 
     return points;
+}
+
+export const getTiltMatrix = (metadata: any) => {
+    // tiltMatrix is provided column major in a flat list
+    let tiltMatrix = [
+        [metadata.tiltMatrix[0], metadata.tiltMatrix[4], metadata.tiltMatrix[8], metadata.tiltMatrix[12]],
+        [metadata.tiltMatrix[1], metadata.tiltMatrix[5], metadata.tiltMatrix[9], metadata.tiltMatrix[13]],
+        [metadata.tiltMatrix[2], metadata.tiltMatrix[6], metadata.tiltMatrix[10], metadata.tiltMatrix[14]],
+        [metadata.tiltMatrix[3], metadata.tiltMatrix[7], metadata.tiltMatrix[11], metadata.tiltMatrix[15]],
+    ];
+
+    // weirdly, the tilt matrix is specified in a coordinate system
+    // where Z is up, even though Y is up for the rest of the data
+    // provided by the system; this rotates back and forth to fix this
+    tiltMatrix = mat_m_mat([
+            [1, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, -1, 0, 0],
+            [0, 0, 0, 1],
+        ],
+        mat_m_mat(tiltMatrix, [
+            [1, 0, 0, 0],
+            [0, 0, -1, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 1],
+        ]));
+
+    return tiltMatrix;
 }

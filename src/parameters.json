@@ -5,5 +5,8 @@
     "stepSize": 0.01,
     "maxSteps": 10000,
     "vertical_resolution": 2048,
-    "horizontal_resolution": 8192
+    "horizontal_resolution": 8192,
+    "pointcloud_input": "./data/pointcloud.bin",
+    "metadata_input": "./data/metadata.json",
+    "depthmap_output": "./data/depthmap.bin"
 }
