@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
  * this typescript file is needed as long as importing json files directly
  * doesn't work in Bun
  */
-const params = JSON.parse(readFileSync("src/parameters.json", { encoding: 'utf8' }));
+const params = JSON.parse(readFileSync("parameters.json", { encoding: 'utf8' }));
 
 export const octantWidth = params['octantWidth']
 export const leafSize = params['leafSize']

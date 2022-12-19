@@ -7,7 +7,7 @@ horizontal_resolution = None
 
 output_file = None
 
-with open("src/parameters.json") as f:
+with open("parameters.json") as f:
     parameters = json.load(f)
 
     vertical_resolution = parameters['vertical_resolution']
