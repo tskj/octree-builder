@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises"
 import { getAll, treeSize } from "octree-utils";
 import { parse } from "binary-format-parser";
 import { distSq, length, mat_m_mat, mat_m_v, origin, rotX, rotY } from "vector-utils";
-import { closeEnoughSq, horizontal_resolution, leafSize, maxSteps, octantWidth, stepSize, vertical_resolution } from "params";
+import { pointSizeSq, horizontal_resolution, leafSize, maxSteps, octantWidth, stepSize, vertical_resolution } from "params";
 
 console.time("file read, parsing...")
 
@@ -96,7 +96,7 @@ for (let v = 0; v < vertical_resolution; v++) {
         for (k = 0; k < maxSteps; k++) {
             const sample = { x, y, z };
             const points = lookupNearest(sample, octree, octantWidth);
-            if (points.some(p => distSq(p, sample) < closeEnoughSq)) {
+            if (points.some(p => distSq(p, sample) < pointSizeSq)) {
                 const depth = length(sample)
                 scanline.push(depth)
                 if (depth < closest) closest = depth;

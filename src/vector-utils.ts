@@ -5,6 +5,12 @@ export const origin: Point = { x: 0, y: 0, z: 0 };
 
 export const yAxis = { x: 0, y: 1, z: 0 };
 
+export const scalar_m = (scalar: number, point: Point) => ({
+    x: scalar * point.x,
+    y: scalar * point.y,
+    z: scalar * point.z,
+});
+
 export const add = (a: Point, b: Point): Point => ({
     x: a.x + b.x,
     y: a.y + b.y,
@@ -31,6 +37,15 @@ export const length = ({ x, y, z }: Point): number => {
 
 export const distSq = (p1: Point, p2: Point): number => {
     return lengthSq(sub(p1, p2));
+}
+
+export const normalize = (p: Point) => {
+    const l = length(p);
+    return {
+        x: p.x / l,
+        y: p.y / l,
+        z: p.z / l,
+    }
 }
 
 export const point_format = ({x, y, z}: Point) => `Point{${x}, ${y}, ${z}}`;

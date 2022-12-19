@@ -1,3 +1,4 @@
+import { pointSize } from "params";
 import { OctantDirections, octantDirections, Octree, Point } from "types";
 import { assert, recordMap } from "utils";
 import { add, point_format } from "vector-utils";
@@ -55,10 +56,13 @@ export const octree_format = (octree: Octree) => {
  * in other words which octant it needs to be placed in
  */
 export const octantDirectionOfPoint = (point: Point, octantSize: number, octantCenter: Point): OctantDirections => {
+    // TODO: can these asserts work with the new volumetric strat?
+    /*
     const eps = 1e-10;
     assert("point is within octants along X axis", octantCenter.x - octantSize - eps <= point.x && point.x <= octantCenter.x + octantSize + eps);
     assert("point is within octants along Y axis", octantCenter.y - octantSize - eps <= point.y && point.y <= octantCenter.y + octantSize + eps);
     assert("point is within octants along Z axis", octantCenter.z - octantSize - eps <= point.z && point.z <= octantCenter.z + octantSize + eps);
+    */
     if (point.x < octantCenter.x) {
         if (point.y < octantCenter.y) {
             if (point.z < octantCenter.z) {
@@ -159,4 +163,24 @@ export const getAll = (octree: Octree): Point[] => {
         }
     });
     return points;
+}
+
+export const isWithinOctant = (octantWidth: number, octantCenter: Point) => (point: Point) => {
+    return (
+        octantCenter.x - octantWidth <= point.x && point.x <= octantCenter.x + octantWidth &&
+        octantCenter.y - octantWidth <= point.y && point.y <= octantCenter.y + octantWidth &&
+        octantCenter.z - octantWidth <= point.z && point.z <= octantCenter.z + octantWidth
+    )
+}
+
+export const pointBoundingBoxIntersectsOctant = (octantWidth: number, octantCenter: Point) => (point: Point): boolean => {
+    if (octantCenter.x + octantWidth < point.x - pointSize) return false;
+    if (octantCenter.y + octantWidth < point.y - pointSize) return false;
+    if (octantCenter.z + octantWidth < point.z - pointSize) return false;
+
+    if (octantCenter.x - octantWidth > point.x + pointSize) return false;
+    if (octantCenter.y - octantWidth > point.y + pointSize) return false;
+    if (octantCenter.z - octantWidth > point.z + pointSize) return false;
+
+    return true;
 }
