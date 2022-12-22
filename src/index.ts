@@ -55,7 +55,7 @@ console.log("size", treeSize(octree));
 console.timeEnd("sampling...")
 console.time("done sampling, building file")
 
-const { image, misses, closest, farthest } = raycast(octree);
+const { image, misses, closest, farthest, octantHash } = raycast(octree);
 
 console.timeEnd("done sampling, building file")
 console.time("file buffer built, writing to disk")
@@ -65,7 +65,7 @@ console.log("misses", misses)
 console.log("closest", closest)
 console.log("farthest", farthest)
 
-const output = createBitmapImage({ image, closest, farthest });
+const output = createBitmapImage({ image, closest, farthest, octantHash });
 
 console.timeEnd("file buffer built, writing to disk")
 console.time("timer")

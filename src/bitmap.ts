@@ -4,7 +4,7 @@ import { horizontal_resolution, maxSteps, stepSize, vertical_resolution } from "
  * returns a flat byte array encoding a bitmapped image of `horizontal_resolution`
  * by `veritcal_resolution` pixels (row major), of RGB triplets (one byte per channel)
  */
-export const createBitmapImage = ({ image, closest, farthest }: { image: number[][], closest: number, farthest: number}) => {
+export const createBitmapImage = ({ image, closest, farthest, octantHash }: { image: number[][], closest: number, farthest: number, octantHash: number[][] }) => {
     const range = farthest - closest;
 
     const output = new ArrayBuffer(vertical_resolution * horizontal_resolution * 3);
@@ -15,17 +15,19 @@ export const createBitmapImage = ({ image, closest, farthest }: { image: number[
             const depth = image[v][h];
             let pixel = Math.floor(255 * (1 - (depth - closest) / range));
 
+            const hash = octantHash[v][h];
+
             if (pixel < 0) pixel = 0;
             if (pixel > 255) pixel = 255;
 
             if (depth > stepSize * maxSteps) {
-                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 0, 0);
+                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 0, hash);
                 outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 1, 255);
                 outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 2, 0);
             } else {
                 outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 0, pixel);
-                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 1, pixel);
-                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 2, pixel);
+                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 1, hash);
+                outputView.setUint8(v * horizontal_resolution * 3 + (h * 3) + 2, hash);
             }
         }
     }

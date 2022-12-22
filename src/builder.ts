@@ -1,4 +1,4 @@
-import { Point, Octree, } from "types";
+import { Point, Octree, OctantDirections, } from "types";
 import { recordMap } from "utils";
 import { origin } from "vector-utils";
 import { newOctants, octantDirectionOfPoint, octantDirectionToPoint } from "octree-utils";
@@ -35,16 +35,17 @@ export const buildOctree = (points: Point[], octantSize: number, octantCenter: P
  * this could technically be not the nearest point in space, because
  * it could actually lie in a different octant
  */
-export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin): Point[] => {
+export const lookupNearest = (point: Point, tree: Octree, octantSize: number, octantCenter: Point = origin, path: OctantDirections[] = []): [Point[], OctantDirections[]] => {
     switch (tree[0]) {
         case 'leaf': {
-            return tree[1];
+            return [tree[1], path];
         }
         case 'node': {
             const octant = octantDirectionOfPoint(point, octantSize, octantCenter);
             const newCenter = octantDirectionToPoint(octant, octantSize, octantCenter)
             const newSize = octantSize / 2;
-            return lookupNearest(point, tree[1][octant], newSize, newCenter);
+            const newPath = [...path, octant];
+            return lookupNearest(point, tree[1][octant], newSize, newCenter, newPath);
         }
     }
 }

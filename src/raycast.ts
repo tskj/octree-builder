@@ -1,6 +1,6 @@
 import { lookupNearest } from "builder";
 import { horizontal_resolution, maxSteps, octantWidth, pointSizeSq, stepSize, vertical_resolution } from "params";
-import { Octree } from "types";
+import { Octree, octantDirections } from "types";
 import { distSq, length, mat_m_mat, mat_m_v, rotX, rotY } from "vector-utils";
 
 /**
@@ -14,6 +14,7 @@ import { distSq, length, mat_m_mat, mat_m_v, rotX, rotY } from "vector-utils";
  */
 export const raycast = (octree: Octree) => {
     const image: number[][] = [];
+    const octantHash: number[][] = [];
 
     let misses = 0;
     let closest = Infinity;
@@ -23,6 +24,7 @@ export const raycast = (octree: Octree) => {
         const phi = Math.PI / 4 - (Math.PI / 2) * (v / vertical_resolution);
 
         const scanline = [];
+        const scanline_octants = [];
         for (let h = 0; h < horizontal_resolution; h++) {
             const theta = 2 * Math.PI - (2 * Math.PI) * (h / horizontal_resolution);
 
@@ -37,10 +39,23 @@ export const raycast = (octree: Octree) => {
             let k: number;
             for (k = 0; k < maxSteps; k++) {
                 const sample = { x, y, z };
-                const points = lookupNearest(sample, octree, octantWidth);
+                const [points, path] = lookupNearest(sample, octree, octantWidth);
+
+                const [s0, s1] = path.reverse();
+
+                const p0 = octantDirections.findIndex(s => s === s0);
+                const p1 = octantDirections.findIndex(s => s === s1);
+
+                let value64 = p1 * 8 + p0;
+                if (value64 < 0) value64 = 0;
+                if (value64 > 63) value64 = 63;
+
+                const value = Math.floor(256 * value64 / 64);
+
                 if (points.some(p => distSq(p, sample) < pointSizeSq)) {
                     const depth = length(sample)
                     scanline.push(depth)
+                    scanline_octants.push(value)
                     if (depth < closest) closest = depth;
                     if (depth > farthest) farthest = depth;
                     break;
@@ -53,10 +68,12 @@ export const raycast = (octree: Octree) => {
             if (k >= maxSteps) {
                 const depth = stepSize * maxSteps + .1
                 scanline.push(depth);
+                scanline_octants.push(0);
                 misses++;
             }
         }
         image.push(scanline);
+        octantHash.push(scanline_octants);
     }
 
     return {
@@ -64,5 +81,6 @@ export const raycast = (octree: Octree) => {
         misses,
         closest,
         farthest,
+        octantHash
     }
 }

@@ -41,7 +41,7 @@ test('all points exist in octree', () => {
                 const octree = buildOctree(points, octantWidth, origin, leafSize);
 
                 for (const point of points) {
-                    const nearestPoints = lookupNearest(point, octree, octantWidth);
+                    const [nearestPoints] = lookupNearest(point, octree, octantWidth);
                     expect(nearestPoints).toContainEqual(point);
                 }
             }
